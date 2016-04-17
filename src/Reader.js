@@ -1,7 +1,6 @@
 "use strict";
 
 import EventEmitter from 'events';
-import { Parser } from 'binary-parser';
 
 class Reader extends EventEmitter {
 

@@ -4,7 +4,7 @@
 	"description": "Near field communication using pcsclite node wrapper",
 	"main": "dist/NFC.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
+		"test": "node test/index.js",
 		"build": "babel src --out-dir dist"
 	},
 	"keywords": [
