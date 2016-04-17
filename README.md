@@ -1,11 +1,41 @@
-nfc-pcsc
-===
+# nfc-pcsc
 
-A simple wrapper around node wrapper of pcsclite
+A simple wrapper around [santigimeno/node-pcsclite](https://github.com/santigimeno/node-pcsclite)
 
+## Usage
 
-LICENSE
-=======
+```javascript
+import NFC from './src/NFC';
+
+const nfc = new NFC();
+
+let readers = [];
+
+nfc.on('reader', reader => {
+
+	readers.push(reader);
+
+	console.log(readers);
+
+	reader.on('card', card => {
+
+		// card uid is hex string
+		console.log('card detected', card.uid);
+
+	});
+
+	reader.on('end', () => {
+
+		delete readers[readers.indexOf(reader)];
+
+		console.log(readers);
+
+	});
+
+});
+```
+
+## LICENSE
 
 The nfc node module, documentation, tests, and build scripts are licensed
 under the MIT license:

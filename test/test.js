@@ -25,7 +25,8 @@ nfc.on('reader', reader => {
 
 	reader.on('card', card => {
 
-		console.log('card detected', card);
+		// card uid is hex string
+		console.log('card detected', card.uid);
 
 	});
 
