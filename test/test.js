@@ -1,7 +1,7 @@
 "use strict";
 
 import winston from 'winston';
-import NFC from './src/NFC';
+import NFC from '../src/NFC';
 
 const logger = new (winston.Logger)({
 	transports: [
