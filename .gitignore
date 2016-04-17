@@ -1,0 +1,21 @@
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+.supported
+
+# NetBeans
+/nbproject/private/
+
+# WebStorm
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+
+# Logs
+*.log
+
+dist/
+node_modules/
