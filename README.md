@@ -7,11 +7,13 @@ A simple wrapper around [santigimeno/node-pcsclite](https://github.com/santigime
 ```javascript
 import NFC from './src/NFC';
 
-const nfc = new NFC();
+const nfc = new NFC(logger);
 
 let readers = [];
 
 nfc.on('reader', reader => {
+
+	console.log(`NFC (${reader.reader.name}): device attached`);
 
 	readers.push(reader);
 
@@ -20,17 +22,31 @@ nfc.on('reader', reader => {
 	reader.on('card', card => {
 
 		// card uid is hex string
-		console.log('card detected', card.uid);
+		console.log(`NFC (${reader.reader.name}): card detected`, card.uid);
+
+	});
+
+	reader.on('error', err => {
+
+		console.log(`NFC (${reader.reader.name}): an error occurred`, err);
 
 	});
 
 	reader.on('end', () => {
+
+		console.log(`NFC (${reader.reader.name}): device removed`);
 
 		delete readers[readers.indexOf(reader)];
 
 		console.log(readers);
 
 	});
+
+});
+
+nfc.on('error', err => {
+
+	console.log('NFC: an error occurred', err);
 
 });
 ```

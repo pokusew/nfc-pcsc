@@ -119,15 +119,24 @@ class Reader extends EventEmitter {
 
 				this.logger.info(err);
 
+				this.emit('error', err);
+				return;
+
 			}
 			else {
 
 				this.logger.info('Data received', data);
 
+				if (data.length !== 9) {
+					this.emit('error', 'Invalid data.');
+					return;
+				}
+
 				let error = data.readUInt16BE(7);
 
 				if (error !== 0x9000) {
 					// an error occurred
+					this.emit('error', 'Error reading UID.');
 					return;
 				}
 
