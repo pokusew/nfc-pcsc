@@ -4,7 +4,8 @@ import pcsclite from 'pcsclite';
 import EventEmitter from 'events';
 import Reader from './Reader';
 
-const pcsc = pcsclite();
+
+export { TAG_ISO_14443_3, TAG_ISO_14443_4 } from './Reader';
 
 
 class NFC extends EventEmitter {
@@ -23,6 +24,8 @@ class NFC extends EventEmitter {
 		else {
 			this.logger = {
 				log: function () {
+				},
+				debug: function () {
 				},
 				info: function () {
 				},
@@ -55,7 +58,7 @@ class NFC extends EventEmitter {
 
 	close() {
 
-		pcsc.close();
+		this.pcsc.close();
 
 	}
 
