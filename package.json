@@ -1,6 +1,6 @@
 {
   "name": "nfc-pcsc",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Near field communication using pcsclite node wrapper",
   "main": "dist/NFC.js",
   "scripts": {
