@@ -21,11 +21,11 @@ npm install nfc-pcsc --save
 ## Usage
 
 > If you want see it in action, clone this repository, install dependencies with npm and run `npm run test`.
-```bash
-git clone https://github.com/pokusew/nfc-pcsc.git
-npm install
-npm run test
-```
+> ```bash
+> git clone https://github.com/pokusew/nfc-pcsc.git
+> npm install
+> npm run test
+> ```
 
 
 ```javascript

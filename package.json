@@ -13,7 +13,10 @@
     "url": "https://github.com/pokusew/nfc-pcsc/issues"
   },
   "license": "MIT",
-  "author": "Martin Endler",
+  "author": {
+    "name": "Martin Endler",
+    "url": "https://github.com/pokusew"
+  },
   "main": "dist/NFC.js",
   "repository": {
     "type": "git",
