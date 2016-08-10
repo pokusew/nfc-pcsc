@@ -4,18 +4,22 @@ import winston from 'winston';
 import NFC, { TAG_ISO_14443_3, TAG_ISO_14443_4 } from '../src/NFC';
 import pretty from './pretty';
 
-// logger to see debug logs from nfc-pcsc module
-const logger = new (winston.Logger)({
-	transports: [
-		new (winston.transports.Console)({
-			level: 'silly'
-		})
-	]
-});
-logger.cli(); // better style of logs
 
+// minilogger for debugging
+//
+// function log() {
+// 	console.log(...arguments);
+// }
+//
+// const minilogger = {
+// 	log: log,
+// 	debug: log,
+// 	info: log,
+// 	warn: log,
+// 	error: log
+// };
 
-const nfc = new NFC();
+const nfc = new NFC(); // const nfc = new NFC(minilogger); // optionally you can pass logger to see internal debug logs
 
 let readers = [];
 
@@ -29,7 +33,37 @@ nfc.on('reader', reader => {
 	// see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
 	reader.aid = 'F222222222';
 
-	reader.on('card', card => {
+	reader.on('card', async card => {
+
+		try {
+
+			// example reading 16 bytes assuming containing 16bit integer
+
+			const data = await reader.read(4, 16);
+
+			pretty.info(`data read`, {reader: reader.name, card, data});
+
+			const payload = data.readInt16BE();
+
+			pretty.info(`data converted`, payload);
+		} catch (err) {
+			pretty.error(`error when reading data`, {reader: reader.name, card, err});
+		}
+
+		try {
+
+			// example write 16bit integer
+
+			const data = Buffer.allocUnsafe(16);
+			data.writeInt16BE(789);
+
+			await reader.write(4, data);
+
+			pretty.info(`data written`, {reader: reader.name, card});
+
+		} catch (err) {
+			pretty.error(`error when writing data`, {reader: reader.name, card, err});
+		}
 
 		// standard nfc tags like Mifare
 		if (card.type === TAG_ISO_14443_3) {

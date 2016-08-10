@@ -1,8 +1,14 @@
 # nfc-pcsc
 
-A simple wrapper around [santigimeno/node-pcsclite](https://github.com/santigimeno/node-pcsclite) to work easier with NFC tags using **ARC122 USB reader**.
+[![npm](https://img.shields.io/npm/v/nfc-pcsc.svg?maxAge=2592000)](https://www.npmjs.com/package/nfc-pcsc)
+
+A simple wrapper around [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) to work easier with NFC tags.
 
 Built-in support for reading **card UIDs** and reading tags emulated with [**Android HCE**](https://developer.android.com/guide/topics/connectivity/nfc/hce.html).
+
+> **NOTE:** Reading tag UID and methods for writing and reading tag content **depend on NFC reader commands support**.
+It is tested to work with **ARC122 USB reader** but it can work with others too.  
+When detecting tags does not work see [Alternative usage](#alternative-usage).
 
 ## Installing
 
@@ -64,7 +70,8 @@ nfc.on('error', err => {
 
 ## Alternative usage
 
-You can **disable auto processing of tags** and process them yourself. It may be useful when you are using other than ARC122 USB reader.
+You can **disable auto processing of tags** and process them yourself.
+It may be useful when you are using other than ARC122 USB reader.
 
 ```javascript
 import NFC from 'nfc-pcsc';
@@ -83,9 +90,18 @@ nfc.on('reader', reader => {
     // see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
     reader.aid = 'F222222222';
 
-	reader.on('cardInserted', status => {
-	    console.log(`${reader.reader.name}  card inserted`, status);
-	    // for example see source here https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L106
+	reader.on('card', card => {
+		
+		// card is object containig folowing data
+       	// String standard: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
+        // Buffer atr
+        // Number protocol
+		
+	    console.log(`${reader.reader.name}  card inserted`, card);
+	    
+	    // you can use reader.transmit to send commands and retrieve data
+	    // see https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L224
+	    
 	});
 
 	reader.on('error', err => {

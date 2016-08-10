@@ -12,6 +12,8 @@ class Reader extends EventEmitter {
 	reader = null;
 	logger = null;
 
+	card = null;
+
 	autoProcessing = true;
 	_aid = null;
 	_parsedAid = null;
@@ -61,7 +63,7 @@ class Reader extends EventEmitter {
 
 		this.reader.on('error', (err) => {
 
-			this.logger.error('Error(', this.reader.name, '):', err.message);
+			this.logger.error(err);
 
 			this.emit('error', err);
 
@@ -69,57 +71,37 @@ class Reader extends EventEmitter {
 
 		this.reader.on('status', (status) => {
 
-			this.logger.debug('Status(', this.reader.name, '):', status);
+			this.logger.debug('status', status);
 
 			// check what has changed
 			const changes = this.reader.state ^ status.state;
 
-			this.logger.debug('Changes(', this.reader.name, '):', changes);
+			this.logger.debug('changes', changes);
 
 			if (changes) {
 
 				if ((changes & this.reader.SCARD_STATE_EMPTY) && (status.state & this.reader.SCARD_STATE_EMPTY)) {
 
 					this.logger.info('card removed');
+					this.disconnect();
 
-					// card removed
-					reader.disconnect(reader.SCARD_LEAVE_CARD, (err) => {
-						if (err) {
-							this.logger.info(err);
-						} else {
-							this.logger.info('Disconnected');
-						}
-					});
-
-				} else if ((changes & this.reader.SCARD_STATE_PRESENT) && (status.state & this.reader.SCARD_STATE_PRESENT)) {
+				}
+				else if ((changes & this.reader.SCARD_STATE_PRESENT) && (status.state & this.reader.SCARD_STATE_PRESENT)) {
 
 					const atr = status.atr;
 
 					this.logger.info('card inserted', atr);
 
-					if (!this.autoProcessing) {
-						this.emit('cardInserted', status);
-						return;
+					this.card = {};
+
+					if (atr) {
+
+						this.card.atr = atr;
+						this.card.standard = Reader.selectStandardByAtr(atr);
+
 					}
 
-					// card inserted
-					this.reader.connect({share_mode: this.reader.SCARD_SHARE_SHARED}, (err, protocol) => {
-
-						if (err) {
-							this.logger.error(err);
-							return;
-						}
-
-						this.logger.info('Protocol(', this.reader.name, '):', protocol);
-
-						if (atr && Reader.selectStandardByAtr(atr) === TAG_ISO_14443_4) {
-							this.handle_Iso_14443_4_Tag(protocol);
-						}
-						else {
-							this.handle_Iso_14443_3_Tag(protocol);
-						}
-
-					});
+					this.connect();
 
 				}
 			}
@@ -127,7 +109,7 @@ class Reader extends EventEmitter {
 
 		this.reader.on('end', () => {
 
-			this.logger.info('Reader', this.reader.name, 'removed');
+			this.logger.info('reader removed');
 
 			this.emit('end');
 
@@ -172,9 +154,256 @@ class Reader extends EventEmitter {
 
 	}
 
-	handle_Iso_14443_3_Tag(protocol) {
+	connect() {
 
-		this.logger.info('processing ISO 14443-3 tag');
+		if (!this.card) {
+			return false;
+		}
+
+		this.logger.info('trying to connect card', this.card);
+
+		// connect card
+		this.reader.connect({share_mode: this.reader.SCARD_SHARE_SHARED}, (err, protocol) => {
+
+			if (err) {
+				this.emit('error', err);
+				return;
+			}
+
+			this.card.protocol = protocol;
+
+			this.logger.info('card connected', protocol);
+
+			if (!this.autoProcessing) {
+
+				this.emit('card', this.card);
+				return;
+
+			}
+
+			this.handleTag();
+
+		});
+
+	}
+
+	disconnect() {
+
+		if (!this.card) {
+			return false;
+		}
+
+		this.logger.info('trying to disconnect card', this.card);
+
+		// disconnect removed
+		this.reader.disconnect(this.reader.SCARD_LEAVE_CARD, (err) => {
+
+			if (err) {
+				this.emit('error', err);
+				return;
+			}
+
+			this.card = null;
+
+			this.logger.info('card disconnected');
+
+		});
+
+	}
+
+	read(blockNumber, length, blockSize = 4, packetSize = 16) {
+
+		if (!this.card) {
+			return false;
+		}
+
+		this.logger.info('reading data from card', this.card);
+
+		if (length > packetSize) {
+
+			const p = Math.ceil(length / packetSize);
+
+			const commands = [];
+
+			for (let i = 0; i < p; i++) {
+
+				const block = blockNumber + ((i * packetSize) / blockSize);
+
+				const size = ((i + 1) * packetSize) < length ? packetSize : length - ((i) * packetSize);
+
+				// console.log(i, block, size);
+
+				commands.push(this.read(block, size, blockSize, packetSize));
+
+			}
+
+			return Promise.all(commands)
+				.then(values => {
+					// console.log(values);
+					return Buffer.concat(values, length);
+				});
+
+		}
+
+		// Read Binary Blocks
+		let packet = new Buffer([
+			0xff, // Class
+			0xb0, // Ins
+			0x00, // P1
+			blockNumber, // P2: Block Number
+			length  // Le: Number of Bytes to Read (Maximum 16 bytes)
+		]);
+
+		return new Promise((resolve, reject) => {
+
+			this.reader.transmit(packet, length + 2, this.card.protocol, (err, response) => {
+
+				if (err) {
+					reject(err);
+					return;
+				}
+
+				this.logger.info('response received', response);
+
+				const code = parseInt(response.slice(-2).toString('hex'), 16);
+
+				if (code !== 0x9000) {
+					const err = new Error(`the operation failed`);
+					reject(err);
+					return;
+				}
+
+				const data = response.slice(0, -2);
+
+				this.logger.info('data', data);
+
+				resolve(data);
+
+			});
+
+		});
+
+	}
+
+	write(blockNumber, data, blockSize = 4) {
+
+		if (!this.card) {
+			return false;
+		}
+
+		this.logger.info('writing data to card', this.card);
+
+		if (data.length < blockSize || data.length % blockSize !== 0) {
+			throw new Error('Invalid data length. You can only update the entire data block(s).');
+		}
+
+		if (data.length > blockSize) {
+
+			const p = data.length / blockSize;
+
+			const commands = [];
+
+			for (let i = 0; i < p; i++) {
+
+				const block = blockNumber + i;
+
+				const start = i * blockSize;
+				const end = (i + 1) * blockSize;
+
+				const part = data.slice(start, end);
+
+				// console.log(i, block, start, end, part);
+
+				commands.push(this.write(block, part, blockSize));
+
+			}
+
+			return Promise.all(commands)
+				.then(values => {
+					// console.log(values);
+					return values;
+				});
+
+		}
+
+		// Update Binary Block
+		const packet = new Buffer([
+			0xff, // Class
+			0xd6, // Ins
+			0x00, // P1
+			blockNumber, // P2: Block Number
+			blockSize, // Le: Number of Bytes to Update
+		]);
+
+		const message = Buffer.concat([packet, data]);
+
+		return new Promise((resolve, reject) => {
+
+			this.reader.transmit(message, 2, this.card.protocol, (err, response) => {
+
+				if (err) {
+					reject(err);
+					return;
+				}
+
+				this.logger.info('response received', response);
+
+				const code = response.readUInt16BE(0);
+
+				if (code !== 0x9000) {
+					const err = new Error(`the operation failed`);
+					reject(err);
+					return;
+				}
+
+				resolve(true);
+
+			});
+
+		});
+
+	}
+
+	transmit(data, responseMaxLength, cb) {
+
+		if (!this.card || !this.card.protocol) {
+			return false;
+		}
+
+		return this.reader.transmit(data, responseMaxLength, this.card.protocol, cb);
+
+	}
+
+	handleTag() {
+
+		if (!this.card) {
+			return false;
+		}
+
+		this.logger.info('handling tag', this.card);
+
+		switch (this.card.standard) {
+
+			case TAG_ISO_14443_3:
+				return this.handle_Iso_14443_3_Tag();
+
+			case TAG_ISO_14443_4:
+				return this.handle_Iso_14443_4_Tag();
+
+			default:
+				return this.handle_Iso_14443_3_Tag();
+
+		}
+
+	}
+
+	handle_Iso_14443_3_Tag() {
+
+		if (!this.card || !this.card.protocol) {
+			return false;
+		}
+
+		this.logger.info('processing ISO 14443-3 tag', this.card);
 
 		let packet = new Buffer([
 			0xff, // Class
@@ -184,10 +413,9 @@ class Reader extends EventEmitter {
 			0x00  // Le
 		]);
 
-		this.reader.transmit(packet, 9, protocol, (err, response) => {
+		this.reader.transmit(packet, 9, this.card.protocol, (err, response) => {
 
 			if (err) {
-				this.logger.info(err);
 				this.emit('error', err);
 				return;
 			}
@@ -197,7 +425,6 @@ class Reader extends EventEmitter {
 			if (response.length !== 9) {
 
 				const err = new Error(`Invalid response length ${response.length}. Expected length was 9 bytes.`);
-				this.logger.error(err);
 				this.emit('error', err);
 
 				return;
@@ -209,7 +436,6 @@ class Reader extends EventEmitter {
 			if (error !== 0x9000) {
 
 				const err = new Error(`Response status error.`);
-				this.logger.error(err);
 				this.emit('error', err);
 
 				return;
@@ -229,10 +455,15 @@ class Reader extends EventEmitter {
 
 	handle_Iso_14443_4_Tag(protocol) {
 
-		this.logger.info('processing ISO 14443-4 tag');
+		if (!this.card || !this.card.protocol) {
+			return false;
+		}
+
+		this.logger.info('processing ISO 14443-4 tag', this.card);
 
 		if (!this._parsedAid) {
-			this.logger.error('cannot process ISO 14443-4 tag because AID was not set');
+			const err = new Error('Cannot process ISO 14443-4 tag because AID was not set.');
+			this.emit.error(err);
 		}
 
 		let packet = Buffer.from([
@@ -248,10 +479,9 @@ class Reader extends EventEmitter {
 
 		let message = Buffer.concat([packet, aid]);
 
-		this.reader.transmit(message, 40, protocol, (err, response) => {
+		this.reader.transmit(message, 40, this.card.protocol, (err, response) => {
 
 			if (err) {
-				this.logger.error(err);
 				this.emit('error', err);
 				return;
 			}
@@ -261,7 +491,6 @@ class Reader extends EventEmitter {
 			if (response.length === 2 && response.readUInt16BE(0) === 0x6a82) {
 
 				const err = new Error(`Not found response. Tag not compatible with AID ${this._aid}.`);
-				this.logger.error(err);
 				this.emit('error', err);
 
 				return;
@@ -270,7 +499,6 @@ class Reader extends EventEmitter {
 			if (response.length !== 9) {
 
 				const err = new Error(`Invalid response length ${response.length}. Expected length was 9 bytes.`);
-				this.logger.error(err);
 				this.emit('error', err);
 
 				return;
@@ -283,7 +511,6 @@ class Reader extends EventEmitter {
 			if (error !== 0x9000) {
 
 				const err = new Error(`Response status error.`);
-				this.logger.error(err);
 				this.emit('error', err);
 
 				return;

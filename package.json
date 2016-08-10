@@ -1,33 +1,38 @@
 {
   "name": "nfc-pcsc",
   "version": "0.1.0",
-  "description": "Near field communication using pcsclite node wrapper",
-  "main": "dist/NFC.js",
-  "scripts": {
-    "test": "node -r babel-register test/index.js",
-    "build": "babel src --out-dir dist"
-  },
+  "description": "Easy reading and writing NFC tags and cards",
   "keywords": [
     "nfc",
     "pcsc",
-    "pcsclite"
+    "pcsclite",
+    "arc122"
   ],
+  "homepage": "https://github.com/pokusew/nfc-pcsc#readme",
+  "bugs": {
+    "url": "https://github.com/pokusew/nfc-pcsc/issues"
+  },
+  "license": "MIT",
+  "author": "Martin Endler",
+  "main": "dist/NFC.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pokusew/nfc-pcsc.git"
   },
-  "author": "Martin Endler",
-  "license": "MIT",
+  "scripts": {
+    "build": "babel src --out-dir dist",
+    "test": "node -r babel-register test/index.js"
+  },
   "dependencies": {
-    "pcsclite": "^0.4.9"
+    "@pokusew/pcsclite": "^0.4.13"
   },
   "devDependencies": {
-    "babel-cli": "^6.10.1",
-    "babel-plugin-transform-decorators-legacy": "^1.3.4",
-    "babel-polyfill": "^6.9.1",
-    "babel-preset-es2015": "^6.9.0",
-    "babel-preset-stage-0": "^6.5.0",
-    "babel-register": "^6.9.0",
+    "babel-cli": "^6.11.4",
+    "babel-plugin-transform-async-to-generator": "^6.8.0",
+    "babel-plugin-transform-class-properties": "^6.11.5",
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "babel-preset-es2015-node6": "^0.3.0",
+    "babel-register": "^6.11.6",
     "chalk": "^1.1.3",
     "prettyjson": "^1.1.3",
     "winston": "^2.2.0"
