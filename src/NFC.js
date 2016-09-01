@@ -1,6 +1,6 @@
 "use strict";
 
-import pcsclite from 'pcsclite';
+import pcsclite from '@pokusew/pcsclite';
 import EventEmitter from 'events';
 import Reader from './Reader';
 
