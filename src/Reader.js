@@ -433,8 +433,6 @@ class Reader extends EventEmitter {
 			// last 2 bytes are the status code
 			const error = response.slice(-2).readUInt16BE(0);
 
-			console.log(error.toString(16));
-
 			// an error occurred
 			if (error !== 0x9000) {
 

@@ -10,6 +10,20 @@ Built-in support for reading **card UIDs** and reading tags emulated with [**And
 It is tested to work with **ARC122 USB reader** but it can work with others too.  
 When detecting tags does not work see [Alternative usage](#alternative-usage).
 
+## Content
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Installing](#installing)
+- [Flow of handling tags](#flow-of-handling-tags)
+- [Basic usage](#basic-usage)
+- [Alternative usage](#alternative-usage)
+- [Reading and writing data](#reading-and-writing-data)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Installing
 
 Using npm
@@ -18,7 +32,32 @@ Using npm
 npm install nfc-pcsc --save
 ```
 
-## Usage
+## Flow of handling tags
+
+When a NFC tag (card) is attached to the reader, the following is done:
+
+1. it tries to find out the standard of card (`TAG_ISO_14443_3` or `TAG_ISO_14443_4`)
+
+2. it will connect to the card, so any other card specific commands could be send
+
+3. handling of card
+	
+	- when `autoProcessing` is true (default value) it will handle card by the standard:  
+		
+		`TAG_ISO_14443_3` *(Mifare Ultralight, 1K ...)*: sends GET_DATA command to retrieve card UID  
+		`TAG_ISO_14443_4` *(e.g.: Andorid HCE)*: sends SELECT_APDU command to retrive data by file
+		
+		**then `card` event is fired, for which you can listen and then you can read or write data on the card**  
+		see [Basic usage](#basic-usage) how to do it
+		
+	- when `autoProcessing` is false (default value) it will only fire `card` event  
+	  then you can send whatever commands you want using `reader.transmit` method  
+	  see [Alternative usage](#alternative-usage) how to do it
+	  
+4. you can read data, write data and send other commands
+
+
+## Basic usage
 
 > If you want see it in action, clone this repository, install dependencies with npm and run `npm run test`.
 > ```bash
@@ -71,7 +110,7 @@ nfc.on('error', err => {
 ## Alternative usage
 
 You can **disable auto processing of tags** and process them yourself.
-It may be useful when you are using other than ARC122 USB reader.
+It may be useful when you are using other than ARC122 USB reader or non-standard tags.
 
 ```javascript
 import NFC from 'nfc-pcsc';
@@ -100,7 +139,7 @@ nfc.on('reader', reader => {
 	    console.log(`${reader.reader.name}  card inserted`, card);
 	    
 	    // you can use reader.transmit to send commands and retrieve data
-	    // see https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L224
+	    // see https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L367
 	    
 	});
 
@@ -116,6 +155,54 @@ nfc.on('reader', reader => {
 
 nfc.on('error', err => {
 	console.log('an error occurred', err);
+});
+```
+
+## Reading and writing data
+
+You can read from and write to numerous NFC tags including Mifare Ultralight (tested), Mifare 1K, ...
+
+See above how to set up reader.
+
+```javascript
+reader.on('card', async card => {
+
+	// example reading 16 bytes assuming containing 16bit integer
+	try {
+
+		// reader.read(blockNumber, length, blockSize = 4, packetSize = 16)
+		// blockNumber - memory block number where to start reading
+		// length - how many bytes to read
+		// Caution! length must be divisible by blockSize
+		const data = await reader.read(4, 16);
+
+		pretty.info(`data read`, { reader: reader.name, card, data });
+
+		const payload = data.readInt16BE();
+
+		pretty.info(`data converted`, payload);
+	} catch (err) {
+		pretty.error(`error when reading data`, { reader: reader.name, card, err });
+	}
+
+	// example write 16bit integer
+	try {
+
+		// reader.write(blockNumber, data, blockSize = 4)
+		// blockNumber - memory block number where to start writing
+		// data - what to write
+		// Caution! data.length must be divisible by blockSize
+		const data = Buffer.allocUnsafe(16);
+		data.writeInt16BE(789);
+
+		await reader.write(4, data);
+
+		pretty.info(`data written`, { reader: reader.name, card });
+
+	} catch (err) {
+		pretty.error(`error when writing data`, { reader: reader.name, card, err });
+	}
+
 });
 ```
 
