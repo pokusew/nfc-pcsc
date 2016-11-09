@@ -163,7 +163,7 @@ class Reader extends EventEmitter {
 		this.logger.info('trying to connect card', this.card);
 
 		// connect card
-		this.reader.connect({share_mode: this.reader.SCARD_SHARE_SHARED}, (err, protocol) => {
+		this.reader.connect({ share_mode: this.reader.SCARD_SHARE_SHARED }, (err, protocol) => {
 
 			if (err) {
 				this.emit('error', err);
@@ -413,7 +413,7 @@ class Reader extends EventEmitter {
 			0x00  // Le
 		]);
 
-		this.reader.transmit(packet, 9, this.card.protocol, (err, response) => {
+		this.reader.transmit(packet, 12, this.card.protocol, (err, response) => {
 
 			if (err) {
 				this.emit('error', err);
@@ -422,15 +422,18 @@ class Reader extends EventEmitter {
 
 			this.logger.info('Response received', response);
 
-			if (response.length !== 9) {
+			if (response.length < 2) {
 
-				const err = new Error(`Invalid response length ${response.length}. Expected length was 9 bytes.`);
+				const err = new Error(`Invalid response length ${response.length}. Expected minimal length was 2 bytes.`);
 				this.emit('error', err);
 
 				return;
 			}
 
-			const error = response.readUInt16BE(7);
+			// last 2 bytes are the status code
+			const error = response.slice(-2).readUInt16BE(0);
+
+			console.log(error.toString(16));
 
 			// an error occurred
 			if (error !== 0x9000) {
@@ -441,8 +444,9 @@ class Reader extends EventEmitter {
 				return;
 			}
 
-			let uid = response.slice(0, 7).toString('hex');
-			let uidReverse = Reader.reverseBuffer(response.slice(0, 7)).toString('hex');
+			// strip out the status code (the rest is UID)
+			let uid = response.slice(0, -2).toString('hex');
+			// let uidReverse = Reader.reverseBuffer(response.slice(0, -2)).toString('hex');
 
 			this.emit('card', {
 				type: TAG_ISO_14443_3,
@@ -453,7 +457,7 @@ class Reader extends EventEmitter {
 		});
 	}
 
-	handle_Iso_14443_4_Tag(protocol) {
+	handle_Iso_14443_4_Tag() {
 
 		if (!this.card || !this.card.protocol) {
 			return false;
@@ -496,16 +500,16 @@ class Reader extends EventEmitter {
 				return;
 			}
 
-			if (response.length !== 9) {
+			if (response.length < 2) {
 
-				const err = new Error(`Invalid response length ${response.length}. Expected length was 9 bytes.`);
+				const err = new Error(`Invalid response length ${response.length}. Expected minimal length was 2 bytes.`);
 				this.emit('error', err);
 
 				return;
 			}
 
 			// another possibility let error = parseInt(response.slice(-2).toString('hex'), 16)
-			let error = response.readUInt16BE(7);
+			let error = response.slice(-2).readUInt16BE(0);
 
 			// an error occurred
 			if (error !== 0x9000) {
@@ -516,8 +520,8 @@ class Reader extends EventEmitter {
 				return;
 			}
 
-
-			let data = response.slice(0, 7);
+			// strip out the status code
+			let data = response.slice(0, -2);
 
 			this.logger.info('Data cropped', data);
 
