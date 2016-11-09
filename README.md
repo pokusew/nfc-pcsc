@@ -19,8 +19,10 @@ When detecting tags does not work see [Alternative usage](#alternative-usage).
 - [Installing](#installing)
 - [Flow of handling tags](#flow-of-handling-tags)
 - [Basic usage](#basic-usage)
+	- [Running examples locally](#running-examples-locally)
 - [Alternative usage](#alternative-usage)
 - [Reading and writing data](#reading-and-writing-data)
+- [LICENSE](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -59,6 +61,7 @@ When a NFC tag (card) is attached to the reader, the following is done:
 
 ## Basic usage
 
+> ### Running examples locally
 > If you want see it in action, clone this repository, install dependencies with npm and run `npm run test`.
 > ```bash
 > git clone https://github.com/pokusew/nfc-pcsc.git
