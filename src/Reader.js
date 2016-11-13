@@ -311,7 +311,7 @@ class Reader extends EventEmitter {
 			...keyData
 		]);
 
-		console.log(packet);
+		// console.log(packet);
 
 		let response = null;
 
@@ -396,7 +396,7 @@ class Reader extends EventEmitter {
 			keyNumber, // Byte 5: Key Number
 		]);
 
-		console.log(packet);
+		// console.log(packet);
 
 		let response = null;
 
