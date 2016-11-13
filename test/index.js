@@ -1,7 +1,7 @@
 "use strict";
 
 import winston from 'winston';
-import NFC, { TAG_ISO_14443_3, TAG_ISO_14443_4 } from '../src/NFC';
+import NFC, { TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B } from '../src/NFC';
 import pretty from './pretty';
 
 
@@ -23,7 +23,7 @@ const nfc = new NFC(); // const nfc = new NFC(minilogger); // optionally you can
 
 let readers = [];
 
-nfc.on('reader', reader => {
+nfc.on('reader', async reader => {
 
 	pretty.info(`device attached`, { reader: reader.name });
 
@@ -35,61 +35,91 @@ nfc.on('reader', reader => {
 
 	reader.on('card', async card => {
 
-		// example reading 16 bytes assuming containing 16bit integer
-		// uncomment to try
-		// try {
-		//
-		// 	// reader.read(blockNumber, length, blockSize = 4, packetSize = 16)
-		// 	// blockNumber - memory block number where to start reading
-		// 	// length - how many bytes to read
-		// 	// Caution! length must be divisible by blockSize
-		// 	const data = await reader.read(4, 16);
-		//
-		// 	pretty.info(`data read`, { reader: reader.name, card, data });
-		//
-		// 	const payload = data.readInt16BE();
-		//
-		// 	pretty.info(`data converted`, payload);
-		// } catch (err) {
-		// 	pretty.error(`error when reading data`, { reader: reader.name, card, err });
-		// }
-
-		// example write 16bit integer
-		// uncomment to try
-		// try {
-		//
-		// 	// reader.write(blockNumber, data, blockSize = 4)
-		// 	// blockNumber - memory block number where to start writing
-		// 	// data - what to write
-		// 	// Caution! data.length must be divisible by blockSize
-		// 	const data = Buffer.allocUnsafe(16);
-		// 	data.writeInt16BE(789);
-		//
-		// 	await reader.write(4, data);
-		//
-		// 	pretty.info(`data written`, { reader: reader.name, card });
-		//
-		// } catch (err) {
-		// 	pretty.error(`error when writing data`, { reader: reader.name, card, err });
-		// }
 
 		// standard nfc tags like Mifare
 		if (card.type === TAG_ISO_14443_3) {
-			// uid
-			const uid = card.uid;
+			// const uid = card.uid;
 			pretty.info(`card detected`, { reader: reader.name, card });
-			return;
 		}
-
 		// Android HCE
-		if (card.type === TAG_ISO_14443_4) {
+		else if (card.type === TAG_ISO_14443_4) {
 			// process raw Buffer data
 			const data = card.data.toString('utf8');
 			pretty.info(`card detected`, { reader: reader.name, card: { ...card, data } });
-			return;
+		}
+		// not possible, just to be sure
+		else {
+			pretty.info(`card detected`, { reader: reader.name, card });
 		}
 
-		pretty.info(`card detected`, { reader: reader.name, card });
+
+		// Notice: reading data from Mifare Classic cards (e.g. Mifare 1K) requires,
+		// that the data block must be authenticated first
+		// don't forget to fill your keys and types
+		// reader.authenticate(blockNumber, keyType, key)
+		// uncomment when you need it
+
+		// try {
+		//
+		// 	const key = 'FFFFFFFFFFFF';
+		// 	const keyType = KEY_TYPE_A;
+		//
+		// 	// we will authenticate block 4, 5, 6, 7 (which we want to read)
+		// 	await Promise.all([
+		// 		reader.authenticate(4, keyType, key),
+		// 		reader.authenticate(5, keyType, key),
+		// 		reader.authenticate(6, keyType, key),
+		// 		reader.authenticate(7, keyType, key)
+		// 	]);
+		//
+		// 	pretty.info(`blocks successfully authenticated`);
+		//
+		// } catch (err) {
+		// 	pretty.error(`error when authenticating data`, { reader: reader.name, card, err });
+		// 	return;
+		// }
+
+
+		// example reading 16 bytes assuming containing 16bit integer
+		try {
+
+			// reader.read(blockNumber, length, blockSize = 4, packetSize = 16)
+			// - blockNumber - memory block number where to start reading
+			// - length - how many bytes to read
+			// ! Caution! length must be divisible by blockSize
+
+			const data = await reader.read(4, 16);
+
+			pretty.info(`data read`, { reader: reader.name, card, data });
+
+			const payload = data.readInt16BE();
+
+			pretty.info(`data converted`, payload);
+
+		} catch (err) {
+			pretty.error(`error when reading data`, { reader: reader.name, card, err });
+		}
+
+
+		// example write 16bit integer
+		try {
+
+			// reader.write(blockNumber, data, blockSize = 4)
+			// - blockNumber - memory block number where to start writing
+			// - data - what to write
+			// ! Caution! data.length must be divisible by blockSize
+
+			const data = Buffer.allocUnsafe(16);
+			data.writeInt16BE(800);
+
+			await reader.write(4, data);
+
+			pretty.info(`data written`, { reader: reader.name, card });
+
+		} catch (err) {
+			pretty.error(`error when writing data`, { reader: reader.name, card, err });
+		}
+
 
 	});
 

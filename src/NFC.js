@@ -5,7 +5,8 @@ import EventEmitter from 'events';
 import Reader from './Reader';
 
 
-export { TAG_ISO_14443_3, TAG_ISO_14443_4 } from './Reader';
+export * from './Reader';
+export * from './errors';
 
 
 class NFC extends EventEmitter {

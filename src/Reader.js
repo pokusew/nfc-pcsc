@@ -1,10 +1,27 @@
 "use strict";
 
 import EventEmitter from 'events';
+import {
+	ConnectError,
+	DisconnectError,
+	TransmitError,
+	AuthenticationError,
+	LoadAuthenticationKeyError,
+	ReadError,
+	WriteError,
+	GetUIDError,
+	CARD_NOT_CONNECTED,
+	OPERATION_FAILED,
+	UNKNOWN_ERROR,
+	FAILURE
+} from './errors';
 
 
 export const TAG_ISO_14443_3 = 'TAG_ISO_14443_3';
 export const TAG_ISO_14443_4 = 'TAG_ISO_14443_4';
+
+export const KEY_TYPE_A = 0x60;
+export const KEY_TYPE_B = 0x61;
 
 
 class Reader extends EventEmitter {
@@ -17,6 +34,50 @@ class Reader extends EventEmitter {
 	autoProcessing = true;
 	_aid = null;
 	_parsedAid = null;
+
+	keyStorage = {
+		'0': null,
+		'1': null
+	};
+
+	pendingLoadAuthenticationKey = {};
+
+	static reverseBuffer(src) {
+
+		let buffer = new Buffer(src.length);
+
+		for (var i = 0, j = src.length - 1; i <= j; ++i, --j) {
+			buffer[i] = src[j];
+			buffer[j] = src[i];
+		}
+
+		return buffer;
+
+	}
+
+	static parseAid(str) {
+
+		let result = [];
+
+		for (let i = 0; i < str.length; i += 2) {
+			result.push(parseInt(str.substr(i, 2), 16));
+		}
+
+		return result;
+
+	}
+
+	static selectStandardByAtr(atr) {
+
+		// TODO: better detecting card types
+		if (atr[5] && atr[5] === 0x4f) {
+			return TAG_ISO_14443_3;
+		}
+		else {
+			return TAG_ISO_14443_4;
+		}
+
+	}
 
 	get aid() {
 		return this._aid;
@@ -69,7 +130,7 @@ class Reader extends EventEmitter {
 
 		});
 
-		this.reader.on('status', (status) => {
+		this.reader.on('status', async status => {
 
 			this.logger.debug('status', status);
 
@@ -83,7 +144,16 @@ class Reader extends EventEmitter {
 				if ((changes & this.reader.SCARD_STATE_EMPTY) && (status.state & this.reader.SCARD_STATE_EMPTY)) {
 
 					this.logger.info('card removed');
-					this.disconnect();
+
+					try {
+
+						await this.disconnect();
+
+					} catch (err) {
+
+						this.emit(err);
+
+					}
 
 				}
 				else if ((changes & this.reader.SCARD_STATE_PRESENT) && (status.state & this.reader.SCARD_STATE_PRESENT)) {
@@ -101,7 +171,25 @@ class Reader extends EventEmitter {
 
 					}
 
-					this.connect();
+					try {
+
+						await this.connect();
+
+						if (!this.autoProcessing) {
+
+							this.emit('card', this.card);
+							return;
+
+						}
+
+						this.handleTag();
+
+					} catch (err) {
+
+						this.emit(err);
+
+					}
+
 
 				}
 			}
@@ -117,71 +205,30 @@ class Reader extends EventEmitter {
 
 	}
 
-	static reverseBuffer(src) {
-
-		let buffer = new Buffer(src.length);
-
-		for (var i = 0, j = src.length - 1; i <= j; ++i, --j) {
-			buffer[i] = src[j];
-			buffer[j] = src[i];
-		}
-
-		return buffer;
-
-	}
-
-	static parseAid(str) {
-
-		let result = [];
-
-		for (let i = 0; i < str.length; i += 2) {
-			result.push(parseInt(str.substr(i, 2), 16));
-		}
-
-		return result;
-
-	}
-
-	static selectStandardByAtr(atr) {
-
-		// TODO: better detecting card types
-		if (atr[5] && atr[5] === 0x4f) {
-			return TAG_ISO_14443_3;
-		}
-		else {
-			return TAG_ISO_14443_4;
-		}
-
-	}
-
 	connect() {
 
-		if (!this.card) {
-			return false;
-		}
+		this.logger.info('trying to connect');
 
-		this.logger.info('trying to connect card', this.card);
+		return new Promise((resolve, reject) => {
 
-		// connect card
-		this.reader.connect({ share_mode: this.reader.SCARD_SHARE_SHARED }, (err, protocol) => {
+			// connect card
+			this.reader.connect({ share_mode: this.reader.SCARD_SHARE_SHARED }, (err, protocol) => {
 
-			if (err) {
-				this.emit('error', err);
-				return;
-			}
+				if (err) {
+					if (err) {
+						const error = new ConnectError(FAILURE, 'An error occurred while connecting.', err);
+						this.logger.error(error);
+						return reject(error);
+					}
+				}
 
-			this.card.protocol = protocol;
+				this.card.protocol = protocol;
 
-			this.logger.info('card connected', protocol);
+				this.logger.info('card connected', protocol);
 
-			if (!this.autoProcessing) {
+				return resolve(protocol);
 
-				this.emit('card', this.card);
-				return;
-
-			}
-
-			this.handleTag();
+			});
 
 		});
 
@@ -190,31 +237,196 @@ class Reader extends EventEmitter {
 	disconnect() {
 
 		if (!this.card) {
-			return false;
+			throw new DisconnectError(CARD_NOT_CONNECTED, 'Reader in not connected to any card.')
 		}
 
 		this.logger.info('trying to disconnect card', this.card);
 
-		// disconnect removed
-		this.reader.disconnect(this.reader.SCARD_LEAVE_CARD, (err) => {
+		return new Promise((resolve, reject) => {
 
-			if (err) {
-				this.emit('error', err);
-				return;
-			}
+			// disconnect removed
+			this.reader.disconnect(this.reader.SCARD_LEAVE_CARD, (err) => {
 
-			this.card = null;
+				if (err) {
+					const error = new DisconnectError(FAILURE, 'An error occurred while disconnecting.', err);
+					this.logger.error(error);
+					return reject(error);
+				}
 
-			this.logger.info('card disconnected');
+				this.card = null;
+
+				this.logger.info('card disconnected');
+
+				return resolve(true);
+
+			});
 
 		});
 
 	}
 
-	read(blockNumber, length, blockSize = 4, packetSize = 16) {
+	transmit(data, responseMaxLength) {
+
+		if (!this.card || !this.card.protocol) {
+			throw new TransmitError(CARD_NOT_CONNECTED, 'No card or protocol available.');
+		}
+
+		return new Promise((resolve, reject) => {
+
+			this.reader.transmit(data, responseMaxLength, this.card.protocol, (err, response) => {
+
+				if (err) {
+					const error = new TransmitError(FAILURE, 'An error occurred while transmitting.', err);
+					return reject(error);
+				}
+
+				return resolve(response);
+
+			});
+
+		});
+
+	}
+
+	async loadAuthenticationKey(keyNumber, key) {
+
+		if (!(keyNumber === 0 || keyNumber === 1)) {
+			throw new LoadAuthenticationKeyError('invalid_key_number');
+		}
+
+		const keyData = Reader.parseAid(key);
+
+		if (keyData.length !== 6) {
+			throw new LoadAuthenticationKeyError('invalid_key');
+		}
+
+		// CMD: Load Authentication Keys
+		const packet = new Buffer([
+			0xff, // Class
+			0x82, // INS
+			0x00, // P1: Key Structure (0x00 = Key is loaded into the reader volatile memory.)
+			keyNumber, // P2: Key Number (00h ~ 01h = Key Location. The keys will disappear once the reader is disconnected from the PC)
+			0x06, // Lc
+			// Data In: Key (6 bytes)
+			...keyData
+		]);
+
+		console.log(packet);
+
+		let response = null;
+
+		try {
+
+			response = await this.transmit(packet, 2);
+
+			this.logger.info('response received', response);
+
+
+		} catch (err) {
+
+			throw new LoadAuthenticationKeyError(null, null, err);
+
+		}
+
+		const statusCode = response.readUInt16BE(0);
+
+		if (statusCode !== 0x9000) {
+			throw new LoadAuthenticationKeyError(OPERATION_FAILED, `Load authentication key operation failed: Status code: ${statusCode}`);
+		}
+
+		this.keyStorage[keyNumber] = key;
+
+		return keyNumber;
+
+	}
+
+	async authenticate(blockNumber, keyType, key) {
+
+		let keyNumber = Object.keys(this.keyStorage).find(n => this.keyStorage[n] === key);
+
+		// key is not in the storage
+		if (!keyNumber) {
+
+			// is not being written now?
+			if (this.pendingLoadAuthenticationKey[key]) {
+				try {
+					keyNumber = await this.pendingLoadAuthenticationKey[key];
+				} catch (err) {
+					throw new AuthenticationError('unable_to_load_key', 'Could not load authentication key into reader.', err);
+				}
+			}
+			else {
+
+				// set key number to first
+				keyNumber = Object.keys(this.keyStorage)[0];
+
+				// if this number is not free
+				if (this.keyStorage[keyNumber] !== null) {
+					// try to find any free number
+					const freeNumber = Object.keys(this.keyStorage).find(n => this.keyStorage[n] === null);
+					// if we find, we use it, otherwise the first will be used and rewritten
+					if (freeNumber) {
+						keyNumber = freeNumber;
+					}
+				}
+
+				try {
+					this.pendingLoadAuthenticationKey[key] = this.loadAuthenticationKey(parseInt(keyNumber), key);
+					await this.pendingLoadAuthenticationKey[key];
+				} catch (err) {
+					throw new AuthenticationError('unable_to_load_key', 'Could not load authentication key into reader.', err);
+				}
+
+			}
+
+		}
+
+		// CMD: Authentication
+		const packet = new Buffer([
+			0xff, // Class
+			0x86, // INS
+			0x00, // P1
+			0x00, // P2
+			0x05, // Lc
+			// Data In: Authenticate Data Bytes (5 bytes)
+			0x01, // Byte 1: Version
+			0x00, // Byte 2
+			blockNumber, // Byte 3: Block Number
+			keyType, // Byte 4: Key Type
+			keyNumber, // Byte 5: Key Number
+		]);
+
+		console.log(packet);
+
+		let response = null;
+
+		try {
+
+			response = await this.transmit(packet, 2);
+
+			this.logger.info('response received', response);
+
+
+		} catch (err) {
+
+			throw new AuthenticationError(null, null, err);
+
+		}
+
+		const statusCode = response.readUInt16BE(0);
+
+		if (statusCode !== 0x9000) {
+			throw new AuthenticationError(OPERATION_FAILED, `Authentication operation failed: Status code: 0x${statusCode.toString(16)}`);
+		}
+
+		return true;
+
+	}
+
+	async read(blockNumber, length, blockSize = 4, packetSize = 16) {
 
 		if (!this.card) {
-			return false;
+			throw new ReadError(CARD_NOT_CONNECTED);
 		}
 
 		this.logger.info('reading data from card', this.card);
@@ -245,8 +457,8 @@ class Reader extends EventEmitter {
 
 		}
 
-		// Read Binary Blocks
-		let packet = new Buffer([
+		// APDU CMD: Read Binary Blocks
+		const packet = new Buffer([
 			0xff, // Class
 			0xb0, // Ins
 			0x00, // P1
@@ -254,47 +466,44 @@ class Reader extends EventEmitter {
 			length  // Le: Number of Bytes to Read (Maximum 16 bytes)
 		]);
 
-		return new Promise((resolve, reject) => {
+		let response = null;
 
-			this.reader.transmit(packet, length + 2, this.card.protocol, (err, response) => {
+		try {
 
-				if (err) {
-					reject(err);
-					return;
-				}
+			response = await this.transmit(packet, length + 2);
 
-				this.logger.info('response received', response);
+			this.logger.info('response received', response);
 
-				const code = parseInt(response.slice(-2).toString('hex'), 16);
+		} catch (err) {
 
-				if (code !== 0x9000) {
-					const err = new Error(`the operation failed`);
-					reject(err);
-					return;
-				}
+			throw new ReadError(null, null, err);
 
-				const data = response.slice(0, -2);
+		}
 
-				this.logger.info('data', data);
+		const statusCode = response.slice(-2).readUInt16BE(0);
 
-				resolve(data);
+		if (statusCode !== 0x9000) {
+			throw new ReadError(OPERATION_FAILED, `Read operation failed: Status code: 0x${statusCode.toString(16)}`);
+		}
 
-			});
+		const data = response.slice(0, -2);
 
-		});
+		this.logger.info('data', data);
+
+		return data;
 
 	}
 
-	write(blockNumber, data, blockSize = 4) {
+	async write(blockNumber, data, blockSize = 4) {
 
 		if (!this.card) {
-			return false;
+			throw new WriteError(CARD_NOT_CONNECTED);
 		}
 
 		this.logger.info('writing data to card', this.card);
 
 		if (data.length < blockSize || data.length % blockSize !== 0) {
-			throw new Error('Invalid data length. You can only update the entire data block(s).');
+			throw new WriteError('invalid_data_length', 'Invalid data length. You can only update the entire data block(s).');
 		}
 
 		if (data.length > blockSize) {
@@ -326,8 +535,8 @@ class Reader extends EventEmitter {
 
 		}
 
-		// Update Binary Block
-		const packet = new Buffer([
+		// APDU CMD: Update Binary Block
+		const packetHeader = new Buffer([
 			0xff, // Class
 			0xd6, // Ins
 			0x00, // P1
@@ -335,42 +544,30 @@ class Reader extends EventEmitter {
 			blockSize, // Le: Number of Bytes to Update
 		]);
 
-		const message = Buffer.concat([packet, data]);
+		const packet = Buffer.concat([packetHeader, data]);
 
-		return new Promise((resolve, reject) => {
+		let response = null;
 
-			this.reader.transmit(message, 2, this.card.protocol, (err, response) => {
+		try {
 
-				if (err) {
-					reject(err);
-					return;
-				}
+			response = await this.transmit(packet, 2);
 
-				this.logger.info('response received', response);
+			this.logger.info('response received', response);
 
-				const code = response.readUInt16BE(0);
 
-				if (code !== 0x9000) {
-					const err = new Error(`the operation failed`);
-					reject(err);
-					return;
-				}
+		} catch (err) {
 
-				resolve(true);
+			throw new WriteError(null, null, err);
 
-			});
-
-		});
-
-	}
-
-	transmit(data, responseMaxLength, cb) {
-
-		if (!this.card || !this.card.protocol) {
-			return false;
 		}
 
-		return this.reader.transmit(data, responseMaxLength, this.card.protocol, cb);
+		const statusCode = response.readUInt16BE(0);
+
+		if (statusCode !== 0x9000) {
+			throw new WriteError(OPERATION_FAILED, `Write operation failed: Status code: 0x${statusCode.toString(16)}`);
+		}
+
+		return true;
 
 	}
 
@@ -397,7 +594,8 @@ class Reader extends EventEmitter {
 
 	}
 
-	handle_Iso_14443_3_Tag() {
+	// TODO: improve error handling and debugging
+	async handle_Iso_14443_3_Tag() {
 
 		if (!this.card || !this.card.protocol) {
 			return false;
@@ -405,6 +603,7 @@ class Reader extends EventEmitter {
 
 		this.logger.info('processing ISO 14443-3 tag', this.card);
 
+		// APDU CMD: Get Data
 		let packet = new Buffer([
 			0xff, // Class
 			0xca, // Ins
@@ -413,31 +612,27 @@ class Reader extends EventEmitter {
 			0x00  // Le
 		]);
 
-		this.reader.transmit(packet, 12, this.card.protocol, (err, response) => {
+		try {
 
-			if (err) {
-				this.emit('error', err);
-				return;
-			}
-
-			this.logger.info('Response received', response);
+			const response = await this.transmit(packet, 12);
 
 			if (response.length < 2) {
 
-				const err = new Error(`Invalid response length ${response.length}. Expected minimal length was 2 bytes.`);
-				this.emit('error', err);
+				const error = new GetUIDError('invalid_response', `Invalid response length ${response.length}. Expected minimal length was 2 bytes.`);
+				this.emit('error', error);
 
 				return;
+
 			}
 
 			// last 2 bytes are the status code
-			const error = response.slice(-2).readUInt16BE(0);
+			const statusCode = response.slice(-2).readUInt16BE(0);
 
 			// an error occurred
-			if (error !== 0x9000) {
+			if (statusCode !== 0x9000) {
 
-				const err = new Error(`Response status error.`);
-				this.emit('error', err);
+				const error = new GetUIDError(OPERATION_FAILED, 'Could not get card UID.',);
+				this.emit('error', error);
 
 				return;
 			}
@@ -452,10 +647,18 @@ class Reader extends EventEmitter {
 			});
 
 
-		});
+		} catch (err) {
+
+			const error = new GetUIDError(null, null, err);
+
+			this.emit('error', error);
+
+		}
+
 	}
 
-	handle_Iso_14443_4_Tag() {
+	// TODO: improve error handling and debugging
+	async handle_Iso_14443_4_Tag() {
 
 		if (!this.card || !this.card.protocol) {
 			return false;
@@ -468,27 +671,22 @@ class Reader extends EventEmitter {
 			this.emit.error(err);
 		}
 
-		let packet = Buffer.from([
+		// APDU CMD: Select Apdu
+		const packetHeader = Buffer.from([
 			0x00, // Class
-			0xa4, // Ins
+			0xa4, // INS
 			0x04, // P1
 			0x00, // P2
-			0x05  // LE
+			0x05  // Le
 		]);
 
+		const aid = Buffer.from(this._parsedAid);
 
-		let aid = Buffer.from(this._parsedAid);
+		const packet = Buffer.concat([packetHeader, aid]);
 
-		let message = Buffer.concat([packet, aid]);
+		try {
 
-		this.reader.transmit(message, 40, this.card.protocol, (err, response) => {
-
-			if (err) {
-				this.emit('error', err);
-				return;
-			}
-
-			this.logger.info('Response received', response);
+			const response = await this.transmit(packet, 40);
 
 			if (response.length === 2 && response.readUInt16BE(0) === 0x6a82) {
 
@@ -507,10 +705,10 @@ class Reader extends EventEmitter {
 			}
 
 			// another possibility let error = parseInt(response.slice(-2).toString('hex'), 16)
-			let error = response.slice(-2).readUInt16BE(0);
+			const statusCode = response.slice(-2).readUInt16BE(0);
 
 			// an error occurred
-			if (error !== 0x9000) {
+			if (statusCode !== 0x9000) {
 
 				const err = new Error(`Response status error.`);
 				this.emit('error', err);
@@ -528,8 +726,14 @@ class Reader extends EventEmitter {
 				data: data
 			});
 
+		} catch (err) {
 
-		});
+			const error = new GetUIDError(null, null, err);
+
+			this.emit('error', error);
+
+		}
+
 	}
 
 	close() {
