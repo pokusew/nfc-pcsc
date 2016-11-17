@@ -1,25 +1,25 @@
 "use strict";
 
 import winston from 'winston';
-import NFC, { TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B } from '../src/NFC';
+import NFC, { TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B, CONNECT_MODE_DIRECT } from '../src/NFC';
 import pretty from './pretty';
 
 
 // minilogger for debugging
-//
-// function log() {
-// 	console.log(...arguments);
-// }
-//
-// const minilogger = {
-// 	log: log,
-// 	debug: log,
-// 	info: log,
-// 	warn: log,
-// 	error: log
-// };
 
-const nfc = new NFC(); // const nfc = new NFC(minilogger); // optionally you can pass logger to see internal debug logs
+function log() {
+	console.log(...arguments);
+}
+
+const minilogger = {
+	log: log,
+	debug: log,
+	info: log,
+	warn: log,
+	error: log
+};
+
+const nfc = new NFC(minilogger); // const nfc = new NFC(minilogger); // optionally you can pass logger to see internal debug logs
 
 let readers = [];
 
@@ -29,9 +29,20 @@ nfc.on('reader', async reader => {
 
 	readers.push(reader);
 
+
 	// needed for reading tags emulated with Android HCE AID
 	// see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
 	reader.aid = 'F222222222';
+
+	console.log();
+
+	try {
+		await reader.connect(CONNECT_MODE_DIRECT);
+		await reader.setBuzzerOutput(false);
+		await reader.disconnect();
+	} catch (err) {
+		console.log(err);
+	}
 
 	reader.on('card', async card => {
 
@@ -51,7 +62,6 @@ nfc.on('reader', async reader => {
 		else {
 			pretty.info(`card detected`, { reader: reader.name, card });
 		}
-
 
 		// Notice: reading data from Mifare Classic cards (e.g. Mifare 1K) requires,
 		// that the data block must be authenticated first
@@ -99,6 +109,8 @@ nfc.on('reader', async reader => {
 
 		} catch (err) {
 			pretty.error(`error when reading data`, { reader: reader.name, card, err });
+			await reader.led(0b01011101, [0x02, 0x01, 0x05, 0x01]);
+			return;
 		}
 
 
@@ -119,6 +131,17 @@ nfc.on('reader', async reader => {
 
 		} catch (err) {
 			pretty.error(`error when writing data`, { reader: reader.name, card, err });
+			await reader.led(0b01011101, [0x02, 0x01, 0x05, 0x01]);
+			return;
+		}
+
+
+		try {
+
+			await reader.led(0b00101110, [0x01, 0x00, 0x01, 0x01]);
+
+		} catch (err) {
+			pretty.error(`error when writing led`);
 		}
 
 
