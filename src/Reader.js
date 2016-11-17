@@ -273,6 +273,8 @@ class Reader extends EventEmitter {
 
 		return new Promise((resolve, reject) => {
 
+			console.log('transmitting', data, responseMaxLength);
+
 			this.reader.transmit(data, responseMaxLength, this.card.protocol, (err, response) => {
 
 				if (err) {
@@ -340,7 +342,9 @@ class Reader extends EventEmitter {
 
 	}
 
-	async authenticate(blockNumber, keyType, key) {
+	// for PC/SC V2.01 use obsolete = true
+	// for PC/SC V2.07 use obsolete = false [default]
+	async authenticate(blockNumber, keyType, key, obsolete = false) {
 
 		let keyNumber = Object.keys(this.keyStorage).find(n => this.keyStorage[n] === key);
 
@@ -381,22 +385,32 @@ class Reader extends EventEmitter {
 
 		}
 
-		// CMD: Authentication
-		const packet = new Buffer([
-			0xff, // Class
-			0x86, // INS
-			0x00, // P1
-			0x00, // P2
-			0x05, // Lc
-			// Data In: Authenticate Data Bytes (5 bytes)
-			0x01, // Byte 1: Version
-			0x00, // Byte 2
-			blockNumber, // Byte 3: Block Number
-			keyType, // Byte 4: Key Type
-			keyNumber, // Byte 5: Key Number
-		]);
-
-		// console.log(packet);
+		const packet = !obsolete ? (
+			// CMD: Authentication
+			new Buffer([
+				0xff, // Class
+				0x86, // INS
+				0x00, // P1
+				0x00, // P2
+				0x05, // Lc
+				// Data In: Authenticate Data Bytes (5 bytes)
+				0x01, // Byte 1: Version
+				0x00, // Byte 2
+				blockNumber, // Byte 3: Block Number
+				keyType, // Byte 4: Key Type
+				keyNumber, // Byte 5: Key Number
+			])
+		) : (
+			// CMD: Authentication (obsolete)
+			new Buffer([
+				0xff, // Class
+				0x88, // INS
+				0x00, // P1
+				blockNumber, // P2: Block Number
+				keyType, // P3: Key Type
+				keyNumber // Data In: Key Number
+			])
+		);
 
 		let response = null;
 
@@ -416,6 +430,7 @@ class Reader extends EventEmitter {
 		const statusCode = response.readUInt16BE(0);
 
 		if (statusCode !== 0x9000) {
+			console.log('[authentication operation failed][request packet]', packet);
 			throw new AuthenticationError(OPERATION_FAILED, `Authentication operation failed: Status code: 0x${statusCode.toString(16)}`);
 		}
 
@@ -606,10 +621,10 @@ class Reader extends EventEmitter {
 		// APDU CMD: Get Data
 		let packet = new Buffer([
 			0xff, // Class
-			0xca, // Ins
+			0xca, // INS
 			0x00, // P1: Get current card UID
 			0x00, // P2
-			0x00  // Le
+			0x00  // Le: Full Length of UID
 		]);
 
 		try {

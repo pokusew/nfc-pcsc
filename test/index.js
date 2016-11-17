@@ -56,7 +56,8 @@ nfc.on('reader', async reader => {
 		// Notice: reading data from Mifare Classic cards (e.g. Mifare 1K) requires,
 		// that the data block must be authenticated first
 		// don't forget to fill your keys and types
-		// reader.authenticate(blockNumber, keyType, key)
+		// reader.authenticate(blockNumber, keyType, key, obsolete = false)
+		// if you are experiencing problems, you can try using obsolete = true which is compatible with PC/SC V2.01
 		// uncomment when you need it
 
 		// try {
