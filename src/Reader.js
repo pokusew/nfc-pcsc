@@ -273,7 +273,7 @@ class Reader extends EventEmitter {
 
 		return new Promise((resolve, reject) => {
 
-			console.log('transmitting', data, responseMaxLength);
+			//console.log('transmitting', data, responseMaxLength);
 
 			this.reader.transmit(data, responseMaxLength, this.card.protocol, (err, response) => {
 
@@ -430,7 +430,7 @@ class Reader extends EventEmitter {
 		const statusCode = response.readUInt16BE(0);
 
 		if (statusCode !== 0x9000) {
-			console.log('[authentication operation failed][request packet]', packet);
+			//console.log('[authentication operation failed][request packet]', packet);
 			throw new AuthenticationError(OPERATION_FAILED, `Authentication operation failed: Status code: 0x${statusCode.toString(16)}`);
 		}
 
