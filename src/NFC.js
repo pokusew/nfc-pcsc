@@ -3,6 +3,7 @@
 import pcsclite from '@pokusew/pcsclite';
 import EventEmitter from 'events';
 import Reader from './Reader';
+import ACR122Reader from './ACR122Reader';
 
 
 export * from './Reader';
@@ -40,6 +41,17 @@ class NFC extends EventEmitter {
 		this.pcsc.on('reader', (reader) => {
 
 			this.logger.info('New reader detected', reader.name);
+
+			// create special object for ARC122U reader with commands specific to this reader
+			if (reader.name.toLowerCase().indexOf('acr122') !== -1) {
+
+				const device = new ACR122Reader(reader, this.logger);
+
+				this.emit('reader', device);
+
+				return;
+
+			}
 
 			const device = new Reader(reader, this.logger);
 

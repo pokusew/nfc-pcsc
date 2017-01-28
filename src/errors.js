@@ -43,6 +43,18 @@ export class TransmitError extends BaseError {
 
 }
 
+export class ControlError extends BaseError {
+
+	constructor(code, message, previousError) {
+
+		super(code, message, previousError);
+
+		this.name = 'ControlError';
+
+	}
+
+}
+
 export class ReadError extends BaseError {
 
 	constructor(code, message, previousError) {

@@ -5,6 +5,7 @@ import {
 	ConnectError,
 	DisconnectError,
 	TransmitError,
+	ControlError,
 	AuthenticationError,
 	LoadAuthenticationKeyError,
 	ReadError,
@@ -23,12 +24,16 @@ export const TAG_ISO_14443_4 = 'TAG_ISO_14443_4';
 export const KEY_TYPE_A = 0x60;
 export const KEY_TYPE_B = 0x61;
 
+export const CONNECT_MODE_DIRECT = 'CONNECT_MODE_DIRECT';
+export const CONNECT_MODE_CARD = 'CONNECT_MODE_CARD';
+
 
 class Reader extends EventEmitter {
 
 	reader = null;
 	logger = null;
 
+	connection = null;
 	card = null;
 
 	autoProcessing = true;
@@ -46,7 +51,7 @@ class Reader extends EventEmitter {
 
 		let buffer = new Buffer(src.length);
 
-		for (var i = 0, j = src.length - 1; i <= j; ++i, --j) {
+		for (let i = 0, j = src.length - 1; i <= j; ++i, --j) {
 			buffer[i] = src[j];
 			buffer[j] = src[i];
 		}
@@ -147,7 +152,10 @@ class Reader extends EventEmitter {
 
 					try {
 
-						await this.disconnect();
+						this.card = null;
+						if (this.connection) {
+							await this.disconnect();
+						}
 
 					} catch (err) {
 
@@ -205,28 +213,41 @@ class Reader extends EventEmitter {
 
 	}
 
-	connect() {
+	connect(mode = CONNECT_MODE_CARD) {
 
-		this.logger.info('trying to connect');
+		const modes = {
+			[CONNECT_MODE_DIRECT]: this.reader.SCARD_SHARE_DIRECT,
+			[CONNECT_MODE_CARD]: this.reader.SCARD_SHARE_SHARED,
+		};
+
+		if (!modes[mode]) {
+			throw new ConnectError('invalid_mode', 'Invalid mode')
+		}
+
+		this.logger.info('trying to connect', mode, modes[mode]);
 
 		return new Promise((resolve, reject) => {
 
 			// connect card
-			this.reader.connect({ share_mode: this.reader.SCARD_SHARE_SHARED }, (err, protocol) => {
+			this.reader.connect({
+				share_mode: modes[mode],
+				//protocol: this.reader.SCARD_PROTOCOL_UNDEFINED
+			}, (err, protocol) => {
 
 				if (err) {
-					if (err) {
-						const error = new ConnectError(FAILURE, 'An error occurred while connecting.', err);
-						this.logger.error(error);
-						return reject(error);
-					}
+					const error = new ConnectError(FAILURE, 'An error occurred while connecting.', err);
+					this.logger.error(error);
+					return reject(error);
 				}
 
-				this.card.protocol = protocol;
+				this.connection = {
+					type: modes[mode],
+					protocol: protocol
+				};
 
-				this.logger.info('card connected', protocol);
+				this.logger.info('connected', this.connection);
 
-				return resolve(protocol);
+				return resolve(this.connection);
 
 			});
 
@@ -236,11 +257,11 @@ class Reader extends EventEmitter {
 
 	disconnect() {
 
-		if (!this.card) {
-			throw new DisconnectError(CARD_NOT_CONNECTED, 'Reader in not connected to any card.')
+		if (!this.connection) {
+			throw new DisconnectError('not_connected', 'Reader in not connected. No need for disconnecting.')
 		}
 
-		this.logger.info('trying to disconnect card', this.card);
+		this.logger.info('trying to disconnect', this.connection);
 
 		return new Promise((resolve, reject) => {
 
@@ -253,9 +274,9 @@ class Reader extends EventEmitter {
 					return reject(error);
 				}
 
-				this.card = null;
+				this.connection = null;
 
-				this.logger.info('card disconnected');
+				this.logger.info('disconnected');
 
 				return resolve(true);
 
@@ -267,18 +288,43 @@ class Reader extends EventEmitter {
 
 	transmit(data, responseMaxLength) {
 
-		if (!this.card || !this.card.protocol) {
-			throw new TransmitError(CARD_NOT_CONNECTED, 'No card or protocol available.');
+		if (!this.card || !this.connection) {
+			throw new TransmitError(CARD_NOT_CONNECTED, 'No card or connection available.');
 		}
 
 		return new Promise((resolve, reject) => {
 
-			//console.log('transmitting', data, responseMaxLength);
+			this.logger.log('transmitting', data, responseMaxLength);
 
-			this.reader.transmit(data, responseMaxLength, this.card.protocol, (err, response) => {
+			this.reader.transmit(data, responseMaxLength, this.connection.protocol, (err, response) => {
 
 				if (err) {
 					const error = new TransmitError(FAILURE, 'An error occurred while transmitting.', err);
+					return reject(error);
+				}
+
+				return resolve(response);
+
+			});
+
+		});
+
+	}
+
+	control(data, responseMaxLength) {
+
+		if (!this.connection) {
+			throw new ControlError('not_connected', 'No connection available.');
+		}
+
+		return new Promise((resolve, reject) => {
+
+			this.logger.log('transmitting control', data, responseMaxLength);
+
+			this.reader.control(data, this.reader.IOCTL_CCID_ESCAPE, responseMaxLength, (err, response) => {
+
+				if (err) {
+					const error = new ControlError(FAILURE, 'An error occurred while transmitting control.', err);
 					return reject(error);
 				}
 
@@ -312,8 +358,6 @@ class Reader extends EventEmitter {
 			// Data In: Key (6 bytes)
 			...keyData
 		]);
-
-		// console.log(packet);
 
 		let response = null;
 
@@ -386,31 +430,31 @@ class Reader extends EventEmitter {
 		}
 
 		const packet = !obsolete ? (
-			// CMD: Authentication
-			new Buffer([
-				0xff, // Class
-				0x86, // INS
-				0x00, // P1
-				0x00, // P2
-				0x05, // Lc
-				// Data In: Authenticate Data Bytes (5 bytes)
-				0x01, // Byte 1: Version
-				0x00, // Byte 2
-				blockNumber, // Byte 3: Block Number
-				keyType, // Byte 4: Key Type
-				keyNumber, // Byte 5: Key Number
-			])
-		) : (
-			// CMD: Authentication (obsolete)
-			new Buffer([
-				0xff, // Class
-				0x88, // INS
-				0x00, // P1
-				blockNumber, // P2: Block Number
-				keyType, // P3: Key Type
-				keyNumber // Data In: Key Number
-			])
-		);
+				// CMD: Authentication
+				new Buffer([
+					0xff, // Class
+					0x86, // INS
+					0x00, // P1
+					0x00, // P2
+					0x05, // Lc
+					// Data In: Authenticate Data Bytes (5 bytes)
+					0x01, // Byte 1: Version
+					0x00, // Byte 2
+					blockNumber, // Byte 3: Block Number
+					keyType, // Byte 4: Key Type
+					keyNumber, // Byte 5: Key Number
+				])
+			) : (
+				// CMD: Authentication (obsolete)
+				new Buffer([
+					0xff, // Class
+					0x88, // INS
+					0x00, // P1
+					blockNumber, // P2: Block Number
+					keyType, // P3: Key Type
+					keyNumber // Data In: Key Number
+				])
+			);
 
 		let response = null;
 
@@ -430,7 +474,7 @@ class Reader extends EventEmitter {
 		const statusCode = response.readUInt16BE(0);
 
 		if (statusCode !== 0x9000) {
-			//console.log('[authentication operation failed][request packet]', packet);
+			this.logger.error('[authentication operation failed][request packet]', packet);
 			throw new AuthenticationError(OPERATION_FAILED, `Authentication operation failed: Status code: 0x${statusCode.toString(16)}`);
 		}
 
@@ -612,7 +656,7 @@ class Reader extends EventEmitter {
 	// TODO: improve error handling and debugging
 	async handle_Iso_14443_3_Tag() {
 
-		if (!this.card || !this.card.protocol) {
+		if (!this.card || !this.connection) {
 			return false;
 		}
 
@@ -675,7 +719,7 @@ class Reader extends EventEmitter {
 	// TODO: improve error handling and debugging
 	async handle_Iso_14443_4_Tag() {
 
-		if (!this.card || !this.card.protocol) {
+		if (!this.card || !this.connection) {
 			return false;
 		}
 
