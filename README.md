@@ -23,6 +23,8 @@ When detecting tags does not work see [Alternative usage](#alternative-usage).
 	- [Running examples locally](#running-examples-locally)
 - [Alternative usage](#alternative-usage)
 - [Reading and writing data](#reading-and-writing-data)
+- [FAQ](#faq)
+  - [Can I use this library in my Electron app?](#can-i-use-this-library-in-my-electron-app)
 - [LICENSE](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -242,6 +244,23 @@ reader.on('card', async card => {
 
 });
 ```
+
+
+## FAQ
+
+### Can I use this library in my [Electron](http://electron.atom.io/) app?
+
+Yes, you can! It works well.
+
+**But please note**, that this library uses [Node Native Modules](https://nodejs.org/api/addons.html) (underlying library [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) which provides access to PC/SC API).
+
+Read carefully **[Using Native Node Modules](http://electron.atom.io/docs/tutorial/using-native-node-modules/) guide in Electron documentation** to fully understand the problematic.
+
+**Note**, that because of Node Native Modules, you must build your app on target platform (you must run Windows build on Windows machine, etc.).  
+You can use CI/CD server to build your app for certain platforms.  
+For Windows, I recommend you to use [AppVeyor](https://appveyor.com/).  
+For macOS and Linux build, there are plenty of services to choose from, for example [CircleCI](https://circleci.com/), [Travis CI](https://travis-ci.com/) [CodeShip](https://codeship.com/).
+
 
 ## LICENSE
 
