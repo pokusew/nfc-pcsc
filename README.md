@@ -63,11 +63,11 @@ When a NFC tag (card) is attached to the reader, the following is done:
 ## Basic usage
 
 > ### Running examples locally
-> If you want see it in action, clone this repository, install dependencies with npm and run `npm run test`.
+> If you want see it in action, clone this repository, install dependencies with npm and run `npm run example`.
 > ```bash
 > git clone https://github.com/pokusew/nfc-pcsc.git
 > npm install
-> npm run test
+> npm run example
 > ```
 
 

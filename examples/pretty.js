@@ -56,7 +56,7 @@ function formatConsoleLog(options) {
 		delete options.meta.reader;
 	}
 
-	let log = time +  level + reader + '  '
+	let log = time + level + reader + '  '
 		+ (options.message !== undefined ? options.message : '')
 		+ (options.meta && Object.keys(options.meta).length ? '\n' + json(options.meta) : '' );
 

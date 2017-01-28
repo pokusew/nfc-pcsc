@@ -24,7 +24,9 @@
   },
   "scripts": {
     "build": "babel src --out-dir dist",
-    "test": "node -r babel-register test/index.js"
+    "example": "node -r babel-register examples/index.js",
+    "example-led": "node -r babel-register examples/led.js",
+    "example-desfire": "node -r babel-register examples/desfire.js"
   },
   "dependencies": {
     "@pokusew/pcsclite": "^0.4.15"
