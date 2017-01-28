@@ -7,7 +7,7 @@ A simple wrapper around [pokusew/node-pcsclite](https://github.com/pokusew/node-
 Built-in support for reading **card UIDs** and reading tags emulated with [**Android HCE**](https://developer.android.com/guide/topics/connectivity/nfc/hce.html).
 
 > **NOTE:** Reading tag UID and methods for writing and reading tag content **depend on NFC reader commands support**.
-It is tested to work with **ARC122 USB reader** but it can work with others too.  
+It is tested to work with **ACR122 USB reader** but it can work with others too.  
 When detecting tags does not work see [Alternative usage](#alternative-usage).
 
 ## Content
@@ -113,7 +113,7 @@ nfc.on('error', err => {
 ## Alternative usage
 
 You can **disable auto processing of tags** and process them yourself.
-It may be useful when you are using other than ARC122 USB reader or non-standard tags.
+It may be useful when you are using other than ACR122 USB reader or non-standard tags.
 
 ```javascript
 import NFC from 'nfc-pcsc';
