@@ -250,7 +250,7 @@ reader.on('card', async card => {
 
 ### Can I use this library in my [Electron](http://electron.atom.io/) app?
 
-Yes, you can! It works well.
+**Yes, you can!** It works well.
 
 **But please note**, that this library uses [Node Native Modules](https://nodejs.org/api/addons.html) (underlying library [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) which provides access to PC/SC API).
 
