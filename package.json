@@ -3,10 +3,10 @@
   "version": "0.4.0",
   "description": "Easy reading and writing NFC tags and cards",
   "keywords": [
+    "arc122",
     "nfc",
     "pcsc",
-    "pcsclite",
-    "arc122"
+    "pcsclite"
   ],
   "homepage": "https://github.com/pokusew/nfc-pcsc#readme",
   "bugs": {
@@ -25,8 +25,8 @@
   "scripts": {
     "build": "babel src --out-dir dist",
     "example": "node -r babel-register examples/index.js",
-    "example-led": "node -r babel-register examples/led.js",
-    "example-desfire": "node -r babel-register examples/desfire.js"
+    "example-desfire": "node -r babel-register examples/desfire.js",
+    "example-led": "node -r babel-register examples/led.js"
   },
   "dependencies": {
     "@pokusew/pcsclite": "^0.4.15"

@@ -262,6 +262,6 @@ For Windows, I recommend you to use [AppVeyor](https://appveyor.com/).
 For macOS and Linux build, there are plenty of services to choose from, for example [CircleCI](https://circleci.com/), [Travis CI](https://travis-ci.com/) [CodeShip](https://codeship.com/).
 
 
-## LICENSE
+## License
 
-MIT
+[MIT](/LICENSE.md)
