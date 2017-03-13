@@ -248,13 +248,13 @@ reader.on('card', async card => {
 
 ## FAQ
 
-### Can I use this library in my [Electron](http://electron.atom.io/) app?
+### Can I use this library in my [Electron](https://electron.atom.io/) app?
 
 **Yes, you can!** It works well.
 
 **But please note**, that this library uses [Node Native Modules](https://nodejs.org/api/addons.html) (underlying library [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) which provides access to PC/SC API).
 
-Read carefully **[Using Native Node Modules](http://electron.atom.io/docs/tutorial/using-native-node-modules/) guide in Electron documentation** to fully understand the problematic.
+Read carefully **[Using Native Node Modules](https://electron.atom.io/docs/tutorial/using-native-node-modules/) guide in Electron documentation** to fully understand the problematic.
 
 **Note**, that because of Node Native Modules, you must build your app on target platform (you must run Windows build on Windows machine, etc.).  
 You can use CI/CD server to build your app for certain platforms.  
