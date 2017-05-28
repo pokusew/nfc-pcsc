@@ -4,7 +4,6 @@
 // Example accessing and authenticating Mifare DESFIRE cards
 // #############
 
-import winston from 'winston';
 import NFC, { TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B } from '../src/NFC';
 import pretty from './pretty';
 import crypto from 'crypto';
@@ -56,7 +55,7 @@ nfc.on('reader', async reader => {
 	reader.autoProcessing = false;
 
 	// just handy shortcut to send data
-	const send = async(cmd, comment = null, responseMaxLength = 40) => {
+	const send = async (cmd, comment = null, responseMaxLength = 40) => {
 
 		const b = Buffer.from(cmd);
 
@@ -76,7 +75,7 @@ nfc.on('reader', async reader => {
 
 		pretty.info(`card detected`, { reader: reader.name, card });
 
-		const selectApplication = async() => {
+		const selectApplication = async () => {
 
 			// 1: [0x5A] SelectApplication(appId) [4 bytes] - Selects one specific application for further access
 			// DataIn: appId (3 bytes)
@@ -90,7 +89,7 @@ nfc.on('reader', async reader => {
 
 		};
 
-		const authenticate = async(key) => {
+		const authenticate = async (key) => {
 
 			// 2: [0x0a] Authenticate(keyId) [2bytes]
 			// DataIn: keyId (1 byte)
@@ -148,7 +147,7 @@ nfc.on('reader', async reader => {
 
 		};
 
-		const readData = async() => {
+		const readData = async () => {
 
 			// 3: [0xBD] ReadData(FileNo,Offset,Length) [8bytes] - Reads data from Standard Data Files or Backup Data Files
 			const res = await send(wrap(0xbd, [desfire.read.fileId, ...desfire.read.offset, ...desfire.read.length]), 'step 3 - read', 255);
