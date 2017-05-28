@@ -6,10 +6,6 @@ import Reader from './Reader';
 import ACR122Reader from './ACR122Reader';
 
 
-export * from './Reader';
-export * from './errors';
-
-
 class NFC extends EventEmitter {
 
 	pcsc = null;
