@@ -1,11 +1,19 @@
+# Travis CI config file
+# https://docs.travis-ci.com/
+
 dist: trusty
 sudo: false
+
 language: node_js
+
 node_js:
   - "7"
+
 cache:
-	yarn: true
+  yarn: true
+
 before_script:
   - npm run build
+
 script:
   - node test/_node-version-test.js
