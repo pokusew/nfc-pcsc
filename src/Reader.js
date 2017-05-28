@@ -430,31 +430,31 @@ class Reader extends EventEmitter {
 		}
 
 		const packet = !obsolete ? (
-				// CMD: Authentication
-				new Buffer([
-					0xff, // Class
-					0x86, // INS
-					0x00, // P1
-					0x00, // P2
-					0x05, // Lc
-					// Data In: Authenticate Data Bytes (5 bytes)
-					0x01, // Byte 1: Version
-					0x00, // Byte 2
-					blockNumber, // Byte 3: Block Number
-					keyType, // Byte 4: Key Type
-					keyNumber, // Byte 5: Key Number
-				])
-			) : (
-				// CMD: Authentication (obsolete)
-				new Buffer([
-					0xff, // Class
-					0x88, // INS
-					0x00, // P1
-					blockNumber, // P2: Block Number
-					keyType, // P3: Key Type
-					keyNumber // Data In: Key Number
-				])
-			);
+			// CMD: Authentication
+			new Buffer([
+				0xff, // Class
+				0x86, // INS
+				0x00, // P1
+				0x00, // P2
+				0x05, // Lc
+				// Data In: Authenticate Data Bytes (5 bytes)
+				0x01, // Byte 1: Version
+				0x00, // Byte 2
+				blockNumber, // Byte 3: Block Number
+				keyType, // Byte 4: Key Type
+				keyNumber, // Byte 5: Key Number
+			])
+		) : (
+			// CMD: Authentication (obsolete)
+			new Buffer([
+				0xff, // Class
+				0x88, // INS
+				0x00, // P1
+				blockNumber, // P2: Block Number
+				keyType, // P3: Key Type
+				keyNumber // Data In: Key Number
+			])
+		);
 
 		let response = null;
 

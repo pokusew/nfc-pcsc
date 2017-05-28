@@ -26,7 +26,9 @@
     "build": "babel src --out-dir dist",
     "example": "node -r babel-register examples/index.js",
     "example-desfire": "node -r babel-register examples/desfire.js",
-    "example-led": "node -r babel-register examples/led.js"
+    "example-led": "node -r babel-register examples/led.js",
+    "example-ndef": "node -r babel-register examples/ndef.js",
+    "example-uid-logger": "node -r babel-register examples/uid-logger.js"
   },
   "dependencies": {
     "@pokusew/pcsclite": "^0.4.17"
