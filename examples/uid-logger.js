@@ -4,24 +4,25 @@
 // Logs cards' uid
 // #############
 
-import NFC, { TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B } from '../src/NFC';
+import NFC from '../src/NFC';
 
 
 const nfc = new NFC();
 
 nfc.on('reader', reader => {
 
+	console.log(reader.name + ' reader attached, waiting for cards ...');
 
 	reader.on('card', card => {
 		console.log(card.uid);
 	});
 
 	reader.on('error', err => {
-		console.error(err);
+		console.error('reader error', err);
 	});
 
 	reader.on('end', () => {
-
+		console.log(reader.name + ' reader disconnected.');
 	});
 
 
