@@ -248,10 +248,10 @@ reader.on('card', async card => {
 
 📦📦📦 You can find more examples in [examples folder](/examples), including:
 
-* detecting, authenticating, reading and writing cards
-* controlling LED and buzzer of ACR122U look
-* accessing and authenticating Mifare DESFire cards
-* uid logger
+* [index.js](/examples/index.js) – detecting, authenticating, reading and writing cards (including instructions for Mifare Classic)
+* [led.js](/examples/led.js) – controlling LED and buzzer of ACR122U look
+* [desfire.js](/examples/desfire.js) – accessing and authenticating Mifare DESFire cards
+* [uid-logger.js](/examples/uid-logger.js)
 
 Feel free to open pull request, if you have any useful example, that you'd like to add. 
 
@@ -304,7 +304,7 @@ import { NFC } from 'nfc-pcsc/src';
 
 **Yes, you can!** You can read raw byte card data with `reader.read` method, and then you can parse it with any NDEF parser, e.g. [TapTrack/NdefJS](https://github.com/TapTrack/NdefJS).
 
-Psst! There is also an example (/examples/ndef.js), but it is not finished yet. Feel free to contribute.
+Psst! There is also an example ([ndef.js](/examples/ndef.js)), but it is not finished yet. Feel free to contribute.
 
 
 ## Frequent errors
