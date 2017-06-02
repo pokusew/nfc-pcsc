@@ -1,5 +1,9 @@
 "use strict";
 
+const mock = require('mock-require');
+
+mock('@pokusew/pcsclite', {});
+
 const {
 	NFC,
 	Reader, TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B,
