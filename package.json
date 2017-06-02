@@ -4,9 +4,15 @@
   "description": "Easy reading and writing NFC tags and cards",
   "keywords": [
     "arc122",
+    "card",
+    "desfire",
+    "mifare",
+    "ndef",
     "nfc",
     "pcsc",
-    "pcsclite"
+    "pcsclite",
+    "tag",
+    "ultralight"
   ],
   "homepage": "https://github.com/pokusew/nfc-pcsc#readme",
   "bugs": {
@@ -26,6 +32,7 @@
     "build": "babel src --out-dir dist",
     "example": "node -r babel-register examples/index.js",
     "example-desfire": "node -r babel-register examples/desfire.js",
+    "example-from-readme-3": "node -r babel-register examples/from-readme-3.js",
     "example-led": "node -r babel-register examples/led.js",
     "example-ndef": "node -r babel-register examples/ndef.js",
     "example-uid-logger": "node -r babel-register examples/uid-logger.js",

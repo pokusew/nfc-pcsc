@@ -3,13 +3,17 @@
 [![npm](https://img.shields.io/npm/v/nfc-pcsc.svg?maxAge=2592000)](https://www.npmjs.com/package/nfc-pcsc)
 [![nfc-pcsc channel on discord](https://img.shields.io/badge/discord-join%20chat-61dafb.svg)](https://discord.gg/bg3yazg)
 
-A simple wrapper around [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) to work easier with NFC tags.
+Easy reading and writing NFC tags and cards in Node.js
 
-Built-in support for reading **card UIDs** and reading tags emulated with [**Android HCE**](https://developer.android.com/guide/topics/connectivity/nfc/hce.html).
+Built-in support for auto-reading **card UIDs** and reading tags emulated with [**Android HCE**](https://developer.android.com/guide/topics/connectivity/nfc/hce.html).
 
 > **NOTE:** Reading tag UID and methods for writing and reading tag content **depend on NFC reader commands support**.
-It is tested to work with **ACR122 USB reader** but it can work with others too.  
+It is tested to work with **ACR122 USB reader** but it should work with **all PC/SC compliant devices**.  
 When detecting tags does not work see [Alternative usage](#alternative-usage).
+
+This library uses pscslite native bindings [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) under the hood.
+
+_**Psst!** You are browsing the documentation for the master branch, [look here](https://github.com/pokusew/nfc-pcsc/tree/v0.5.0) to see the usage of latest published version._
 
 ## Content
 
@@ -17,7 +21,7 @@ When detecting tags does not work see [Alternative usage](#alternative-usage).
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
-- [Installing](#installing)
+- [Installation](#installation)
 - [Flow of handling tags](#flow-of-handling-tags)
 - [Basic usage](#basic-usage)
 	- [Running examples locally](#running-examples-locally)
@@ -29,13 +33,25 @@ When detecting tags does not work see [Alternative usage](#alternative-usage).
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Installing
 
-Using npm
+## Installation
+
+> **Requirements:** **Node.js 7+** (it might work under 6.x but it is not tested)
+
+> **Note:** This library uses system PC/SC API. On **Windows and macOS** it works out of the box, but on Linux you have to do some steps as described [here](https://github.com/pokusew/node-pcsclite#installation)
+
+Using npm:
 
 ```bash
 npm install nfc-pcsc --save
 ```
+
+or with yarn:
+
+```bash
+yarn add nfc-pcsc
+```
+
 
 ## Flow of handling tags
 
@@ -49,7 +65,7 @@ When a NFC tag (card) is attached to the reader, the following is done:
 	
 	- when `autoProcessing` is true (default value) it will handle card by the standard:  
 		
-		`TAG_ISO_14443_3` *(Mifare Ultralight, 1K ...)*: sends GET_DATA command to retrieve card UID  
+		`TAG_ISO_14443_3` *(Mifare Ultralight, 1K ...)*: sends GET_DATA command to retrieve **card UID**  
 		`TAG_ISO_14443_4` *(e.g.: Andorid HCE)*: sends SELECT_APDU command to retrive data by file
 		
 		**then `card` event is fired, for which you can listen and then you can read or write data on the card**  
@@ -72,9 +88,14 @@ When a NFC tag (card) is attached to the reader, the following is done:
 > npm run example
 > ```
 
+You can use this library in any Node.js 7+ environment (even in an Electron app). 
 
 ```javascript
-import NFC from 'nfc-pcsc';
+// in ES6
+import { NFC } from 'nfc-pcsc';
+
+// without Babel in ES2015
+const { NFC } = require('nfc-pcsc');
 
 const nfc = new NFC(); // optionally you can pass logger
 
@@ -89,7 +110,7 @@ nfc.on('reader', reader => {
 
 	reader.on('card', card => {
 
-	    // card is object containig folowing data
+	    // card is object containing following data
 	    // [always] String type: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
         // [only TAG_ISO_14443_3] String uid: tag uid
         // [only TAG_ISO_14443_4] Buffer data: raw data from select APDU response
@@ -113,39 +134,44 @@ nfc.on('error', err => {
 });
 ```
 
+
 ## Alternative usage
 
 You can **disable auto processing of tags** and process them yourself.
 It may be useful when you are using other than ACR122 USB reader or non-standard tags.
 
 ```javascript
-import NFC from 'nfc-pcsc';
+// in ES6
+import { NFC } from 'nfc-pcsc';
+
+// without Babel in ES2015
+const { NFC } = require('nfc-pcsc');
 
 const nfc = new NFC(); // optionally you can pass logger
 
 nfc.on('reader', reader => {
-
-    // disable auto processing
-    reader.autoProcessing = false;
-
+	
+	// disable auto processing
+	reader.autoProcessing = false;
+	
 	console.log(`${reader.reader.name}  device attached`);
 
 	// needed for reading tags emulated with Android HCE
 	// custom AID, change according to your Android for tag emulation
-    // see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
-    reader.aid = 'F222222222';
+	// see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
+	// reader.aid = 'F222222222';
 
 	reader.on('card', card => {
 		
-		// card is object containig folowing data
-       	// String standard: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
-        // Buffer atr
-        // Number protocol
+		// card is object containing following data
+		// String standard: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
+		// Buffer atr
+		// Number protocol
 		
-	    console.log(`${reader.reader.name}  card inserted`, card);
+		console.log(`${reader.reader.name}  card inserted`, card);
 	    
-	    // you can use reader.transmit to send commands and retrieve data
-	    // see https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L367
+		// you can use reader.transmit to send commands and retrieve data
+		// see https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L367
 	    
 	});
 
@@ -164,87 +190,63 @@ nfc.on('error', err => {
 });
 ```
 
+
 ## Reading and writing data
 
-You can read from and write to numerous NFC tags including Mifare Ultralight (tested), Mifare 1K, ...
+You can read from and write to numerous NFC tags including Mifare Ultralight (tested), Mifare Classic, Mifare DESFire, ...
 
-See above how to set up reader.
+> Actually, you can even read/write any possible non-standard NFC tag and card, via sending APDU commands according card's technical documentation via `reader.transmit`.
+
+Here is **a simple example** showing reading and writing data to simple card **without authenticating** (e.g. Mifare Ultralight):  
+_See [Basic usage](#basic-usage) how to set up reader or [look here for full code](/examples/from-readme-3.js)_
 
 ```javascript
 reader.on('card', async card => {
 
+	console.log();
+	console.log(`card detected`, card);
 
-	// Notice: reading data from Mifare Classic cards (e.g. Mifare 1K) requires,
-	// that the data block must be authenticated first
-	// don't forget to fill your keys and types
-	// reader.authenticate(blockNumber, keyType, key)
-	// uncomment when you need it
-
-	// try {
-	//
-	// 	const key = 'FFFFFFFFFFFF';
-	// 	const keyType = KEY_TYPE_A;
-	//
-	// 	// we will authenticate block 4, 5, 6, 7 (which we want to read)
-	// 	await Promise.all([
-	// 		reader.authenticate(4, keyType, key),
-	// 		reader.authenticate(5, keyType, key),
-	// 		reader.authenticate(6, keyType, key),
-	// 		reader.authenticate(7, keyType, key)
-	// 	]);
-	//
-	// 	console.log(`blocks successfully authenticated`);
-	//
-	// } catch (err) {
-	// 	console.error(`error when authenticating data`, { reader: reader.name, card, err });
-	// 	return;
-	// }
-
-
-	// example reading 16 bytes assuming containing 16bit integer
+	// example reading 12 bytes assuming containing text in utf8
 	try {
 
 		// reader.read(blockNumber, length, blockSize = 4, packetSize = 16)
-		// - blockNumber - memory block number where to start reading
-		// - length - how many bytes to read
-		// ! Caution! length must be divisible by blockSize
-
-		const data = await reader.read(4, 16);
-
-		console.log(`data read`, { reader: reader.name, card, data });
-
-		const payload = data.readInt16BE();
-
+		const data = await reader.read(4, 12); // starts reading in block 4, continues to 5 and 6 in order to read 12 bytes
+		console.log(`data read`, data);
+		const payload = data.toString(); // utf8 is default encoding
 		console.log(`data converted`, payload);
 
 	} catch (err) {
-		console.error(`error when reading data`, { reader: reader.name, card, err });
+		console.error(`error when reading data`, err);
 	}
 
-
-	// example write 16bit integer
+	// example write 12 bytes containing text in utf8
 	try {
 
+		const data = Buffer.allocUnsafe(12);
+		data.fill(0);
+		const text = (new Date()).toTimeString();
+		data.write(text); // if text is longer than 12 bytes, it will be cut off
 		// reader.write(blockNumber, data, blockSize = 4)
-		// - blockNumber - memory block number where to start writing
-		// - data - what to write
-		// ! Caution! data.length must be divisible by blockSize
-
-		const data = Buffer.allocUnsafe(16);
-		data.writeInt16BE(800);
-
-		await reader.write(4, data);
-
-		console.log(`data written`, { reader: reader.name, card });
+		await reader.write(4, data); // starts writing in block 4, continues to 5 and 6 in order to write 12 bytes
+		console.log(`data written`);
 
 	} catch (err) {
-		console.error(`error when writing data`, { reader: reader.name, card, err });
+		console.error(`error when writing data`, err);
 	}
-
 
 });
 ```
 
+## More examples
+
+📦📦📦 You can find more examples in [examples folder](/examples), including:
+
+* detecting, authenticating, reading and writing cards
+* controlling LED and buzzer of ACR122U look
+* accessing and authenticating Mifare DESFire cards
+* uid logger
+
+Feel free to open pull request, if you have any useful example, that you'd like to add. 
 
 ## FAQ
 
@@ -260,6 +262,53 @@ Read carefully **[Using Native Node Modules](https://electron.atom.io/docs/tutor
 You can use CI/CD server to build your app for certain platforms.  
 For Windows, I recommend you to use [AppVeyor](https://appveyor.com/).  
 For macOS and Linux build, there are plenty of services to choose from, for example [CircleCI](https://circleci.com/), [Travis CI](https://travis-ci.com/) [CodeShip](https://codeship.com/).
+
+### Do I have to use Babel in my app too?
+
+**No, you don't have to.** This library works great **in any Node.js 7+ environment** (even in an **Electron** app).
+
+> Psst! Instead of using **async/await** (like in examples), you can use Promises.
+> ```
+> reader
+>   .read(...)
+>   .then(data => ...)
+>   .catch(err => ...))
+> ```
+
+Internally it uses Babel under the hood to transpile things, that are not supported in Node.js v7 (e.g.: import/export). The transpiled code (in the dist folder) is then published into npm and when you install and require the library, it requires the transpiled code, so you don't have to worry about anything.
+
+### How do I require/import this library?
+
+```javascript
+// in ES6 environment
+import { NFC } from 'nfc-pcsc';
+
+// in ES2015 environment
+const { NFC } = require('nfc-pcsc');
+```
+
+If you want to import uncompiled source and transpile it yourself (not recommended), you can do it as follows:
+
+```javascript
+import { NFC } from 'nfc-pcsc/src';
+```
+
+### Can I read a NDEF formatted tag?
+
+**Yes, you can!** You can read raw byte card data with `reader.read` method, and then you can parse it with any NDEF parser, e.g. [TapTrack/NdefJS](https://github.com/TapTrack/NdefJS).
+
+Psst! There is also an example (/examples/ndef.js), but it is not finished yet. Feel free to contribute.
+
+
+## Frequent errors
+
+### Transaction failed error when using `CONNECT_MODE_DIRECT`
+
+No worry, just needs a proper configuration, see [explanation and instructions here](https://github.com/pokusew/nfc-pcsc/issues/13#issuecomment-302482621).
+
+### Mifare Classic: Authentication Error after Multiple Writes
+
+No worry, you have probably modified a sector trailer instead of a data block, see [explanation and instructions here](https://github.com/pokusew/nfc-pcsc/issues/16#issuecomment-304989178).
 
 
 ## License
