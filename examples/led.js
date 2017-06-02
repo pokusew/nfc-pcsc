@@ -6,7 +6,7 @@
 // - repeated beeping on unsuccessful read/write operation
 // #############
 
-import NFC, { TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B, CONNECT_MODE_DIRECT } from '../src/NFC';
+import { NFC, TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B, CONNECT_MODE_DIRECT } from '../src/index';
 import pretty from './pretty';
 
 

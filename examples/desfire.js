@@ -4,7 +4,7 @@
 // Example accessing and authenticating Mifare DESFire cards
 // #############
 
-import NFC, { TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B } from '../src/NFC';
+import { NFC } from '../src/index';
 import pretty from './pretty';
 import crypto from 'crypto';
 

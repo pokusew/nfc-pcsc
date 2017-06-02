@@ -4,7 +4,7 @@
 // Logs cards' uid
 // #############
 
-import NFC from '../src/NFC';
+import { NFC } from '../src/index';
 
 
 const nfc = new NFC();

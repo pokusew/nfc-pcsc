@@ -31,11 +31,13 @@
   "scripts": {
     "build": "babel src --out-dir dist",
     "example": "node -r babel-register examples/index.js",
+    "example-basic": "node -r babel-register examples/basic.js",
     "example-desfire": "node -r babel-register examples/desfire.js",
     "example-from-readme-3": "node -r babel-register examples/from-readme-3.js",
     "example-led": "node -r babel-register examples/led.js",
     "example-ndef": "node -r babel-register examples/ndef.js",
     "example-uid-logger": "node -r babel-register examples/uid-logger.js",
+    "example-without-auto": "node -r babel-register examples/without-auto.js",
     "test": "cross-env NODE_ENV=test ava test --verbose"
   },
   "dependencies": {

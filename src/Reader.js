@@ -49,7 +49,7 @@ class Reader extends EventEmitter {
 
 	static reverseBuffer(src) {
 
-		let buffer = new Buffer(src.length);
+		const buffer = new Buffer(src.length);
 
 		for (let i = 0, j = src.length - 1; i <= j; ++i, --j) {
 			buffer[i] = src[j];
@@ -62,7 +62,7 @@ class Reader extends EventEmitter {
 
 	static parseAid(str) {
 
-		let result = [];
+		const result = [];
 
 		for (let i = 0; i < str.length; i += 2) {
 			result.push(parseInt(str.substr(i, 2), 16));
@@ -150,6 +150,10 @@ class Reader extends EventEmitter {
 
 					this.logger.info('card removed');
 
+					if (this.card) {
+						this.emit('card.off', { ...this.card });
+					}
+
 					try {
 
 						this.card = null;
@@ -173,10 +177,9 @@ class Reader extends EventEmitter {
 					this.card = {};
 
 					if (atr) {
-
 						this.card.atr = atr;
 						this.card.standard = Reader.selectStandardByAtr(atr);
-
+						this.card.type = this.card.standard;
 					}
 
 					try {
@@ -184,10 +187,8 @@ class Reader extends EventEmitter {
 						await this.connect();
 
 						if (!this.autoProcessing) {
-
 							this.emit('card', this.card);
 							return;
-
 						}
 
 						this.handleTag();
@@ -663,7 +664,7 @@ class Reader extends EventEmitter {
 		this.logger.info('processing ISO 14443-3 tag', this.card);
 
 		// APDU CMD: Get Data
-		let packet = new Buffer([
+		const packet = new Buffer([
 			0xff, // Class
 			0xca, // INS
 			0x00, // P1: Get current card UID
@@ -697,13 +698,12 @@ class Reader extends EventEmitter {
 			}
 
 			// strip out the status code (the rest is UID)
-			let uid = response.slice(0, -2).toString('hex');
-			// let uidReverse = Reader.reverseBuffer(response.slice(0, -2)).toString('hex');
+			const uid = response.slice(0, -2).toString('hex');
+			// const uidReverse = Reader.reverseBuffer(response.slice(0, -2)).toString('hex');
 
-			this.emit('card', {
-				type: TAG_ISO_14443_3,
-				uid: uid
-			});
+			this.card.uid = uid;
+
+			this.emit('card', { ...this.card });
 
 
 		} catch (err) {
@@ -726,8 +726,11 @@ class Reader extends EventEmitter {
 		this.logger.info('processing ISO 14443-4 tag', this.card);
 
 		if (!this._parsedAid) {
+
 			const err = new Error('Cannot process ISO 14443-4 tag because AID was not set.');
-			this.emit.error(err);
+			this.emit('error', err);
+
+			return;
 		}
 
 		// APDU CMD: Select Apdu
@@ -763,7 +766,7 @@ class Reader extends EventEmitter {
 				return;
 			}
 
-			// another possibility let error = parseInt(response.slice(-2).toString('hex'), 16)
+			// another possibility const statusCode = parseInt(response.slice(-2).toString('hex'), 16)
 			const statusCode = response.slice(-2).readUInt16BE(0);
 
 			// an error occurred
@@ -776,12 +779,12 @@ class Reader extends EventEmitter {
 			}
 
 			// strip out the status code
-			let data = response.slice(0, -2);
+			const data = response.slice(0, -2);
 
 			this.logger.info('Data cropped', data);
 
 			this.emit('card', {
-				type: TAG_ISO_14443_4,
+				...this.card,
 				data: data
 			});
 

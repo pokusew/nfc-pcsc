@@ -4,7 +4,7 @@
 // Example from "Reading and writing data" section of project's README
 // #############
 
-import NFC from '../src/NFC';
+import { NFC } from '../src/index';
 
 
 const nfc = new NFC();

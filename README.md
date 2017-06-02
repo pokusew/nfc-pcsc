@@ -119,11 +119,16 @@ nfc.on('reader', reader => {
 
 		// card is object containing following data
 		// [always] String type: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
+		// [always] String standard: same as type
 		// [only TAG_ISO_14443_3] String uid: tag uid
 		// [only TAG_ISO_14443_4] Buffer data: raw data from select APDU response
-		
+
 		console.log(`${reader.reader.name}  card detected`, card);
 
+	});
+
+	reader.on('card.off', card => {
+		console.log(`${reader.reader.name}  card removed`, card);
 	});
 
 	reader.on('error', err => {
@@ -157,10 +162,10 @@ const { NFC } = require('nfc-pcsc');
 const nfc = new NFC(); // optionally you can pass logger
 
 nfc.on('reader', reader => {
-	
+
 	// disable auto processing
 	reader.autoProcessing = false;
-	
+
 	console.log(`${reader.reader.name}  device attached`);
 
 	// needed for reading tags emulated with Android HCE
@@ -169,17 +174,21 @@ nfc.on('reader', reader => {
 	// reader.aid = 'F222222222';
 
 	reader.on('card', card => {
-		
+
 		// card is object containing following data
 		// String standard: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
+		// String type: same as standard
 		// Buffer atr
-		// Number protocol
-		
+
 		console.log(`${reader.reader.name}  card inserted`, card);
-	    
+
 		// you can use reader.transmit to send commands and retrieve data
-		// see https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L367
-	    
+		// see https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L291
+
+	});
+	
+	reader.on('card.off', card => {	
+		console.log(`${reader.reader.name}  card removed`, card);
 	});
 
 	reader.on('error', err => {

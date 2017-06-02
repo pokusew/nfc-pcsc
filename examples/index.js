@@ -8,7 +8,7 @@
 // - example authentication for Mifare Classic cards
 // #############
 
-import NFC, { TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B } from '../src/NFC';
+import { NFC, TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B } from '../src/index';
 import pretty from './pretty';
 
 
@@ -102,14 +102,14 @@ nfc.on('reader', async reader => {
 
 			const data = await reader.read(4, 16); // await reader.read(4, 16, 16); for Mifare Classic cards
 
-			pretty.info(`data read`, { reader: reader.name, card, data });
+			pretty.info(`data read`, { reader: reader.name, data });
 
 			const payload = data.readInt16BE();
 
 			pretty.info(`data converted`, payload);
 
 		} catch (err) {
-			pretty.error(`error when reading data`, { reader: reader.name, card, err });
+			pretty.error(`error when reading data`, { reader: reader.name, err });
 		}
 
 
@@ -134,10 +134,10 @@ nfc.on('reader', async reader => {
 
 			await reader.write(4, data); // await reader.write(4, data, 16); for Mifare Classic cards
 
-			pretty.info(`data written`, { reader: reader.name, card });
+			pretty.info(`data written`, { reader: reader.name });
 
 		} catch (err) {
-			pretty.error(`error when writing data`, { reader: reader.name, card, err });
+			pretty.error(`error when writing data`, { reader: reader.name, err });
 		}
 
 
