@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/nfc-pcsc.svg?maxAge=2592000)](https://www.npmjs.com/package/nfc-pcsc)
 [![nfc-pcsc channel on discord](https://img.shields.io/badge/discord-join%20chat-61dafb.svg)](https://discord.gg/bg3yazg)
 
-Easy reading and writing NFC tags and cards in Node.js
+Easy **reading and writing NFC tags and cards** in Node.js
 
 Built-in support for auto-reading **card UIDs** and reading tags emulated with [**Android HCE**](https://developer.android.com/guide/topics/connectivity/nfc/hce.html).
 
@@ -27,9 +27,16 @@ _**Psst!** You are browsing the documentation for the master branch, [look here]
 	- [Running examples locally](#running-examples-locally)
 - [Alternative usage](#alternative-usage)
 - [Reading and writing data](#reading-and-writing-data)
+- [More examples](#more-examples)
 - [FAQ](#faq)
   - [Can I use this library in my Electron app?](#can-i-use-this-library-in-my-electron-app)
-- [LICENSE](#license)
+  - [Do I have to use Babel in my app too?](#do-i-have-to-use-babel-in-my-app-too)
+  - [How do I require/import this library?](#how-do-i-requireimport-this-library)
+  - [Can I read a NDEF formatted tag?](#can-i-read-a-ndef-formatted-tag)
+- [Frequent errors](#frequent-errors)
+  - [Transaction failed error when using `CONNECT_MODE_DIRECT`](#transaction-failed-error-when-using-connect_mode_direct)
+  - [Mifare Classic: Authentication Error after Multiple Writes](#mifare-classic-authentication-error-after-multiple-writes)
+- [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -105,16 +112,16 @@ nfc.on('reader', reader => {
 
 	// needed for reading tags emulated with Android HCE
 	// custom AID, change according to your Android for tag emulation
-    // see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
-    reader.aid = 'F222222222';
+	// see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
+	reader.aid = 'F222222222';
 
 	reader.on('card', card => {
 
-	    // card is object containing following data
-	    // [always] String type: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
-        // [only TAG_ISO_14443_3] String uid: tag uid
-        // [only TAG_ISO_14443_4] Buffer data: raw data from select APDU response
-
+		// card is object containing following data
+		// [always] String type: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
+		// [only TAG_ISO_14443_3] String uid: tag uid
+		// [only TAG_ISO_14443_4] Buffer data: raw data from select APDU response
+		
 		console.log(`${reader.reader.name}  card detected`, card);
 
 	});
