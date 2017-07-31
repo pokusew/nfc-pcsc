@@ -13,7 +13,7 @@ When detecting tags does not work see [Alternative usage](#alternative-usage).
 
 This library uses pscslite native bindings [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) under the hood.
 
-_**Psst!** You are browsing the documentation for the master branch, [look here](https://github.com/pokusew/nfc-pcsc/tree/v0.5.0) to see the usage of latest published version._
+<!-- _**Psst!** You are browsing the documentation for the master branch, [look here](https://github.com/pokusew/nfc-pcsc/tree/v0.6.0) to see the usage of latest published version._ -->
 
 ## Content
 
@@ -313,10 +313,26 @@ import { NFC } from 'nfc-pcsc/src';
 
 **Yes, you can!** You can read raw byte card data with `reader.read` method, and then you can parse it with any NDEF parser, e.g. [TapTrack/NdefJS](https://github.com/TapTrack/NdefJS).
 
-Psst! There is also an example ([ndef.js](/examples/ndef.js)), but it is not finished yet. Feel free to contribute.
+**Psst!** There is also an example ([ndef.js](/examples/ndef.js)), but it is not finished yet. Feel free to contribute.
 
 
 ## Frequent errors
+
+### TypeError: NFC is not a constructor
+
+No worry, just check that you import the library like this _(note that brackets around NFC)_:
+```javascript
+// in ES6 environment
+import { NFC } from 'nfc-pcsc';
+
+// in ES2015 environment
+const { NFC } = require('nfc-pcsc');
+```
+
+Take a a look at [How do I require/import this library?](#how-do-i-requireimport-this-library) section for more info.
+
+> **Note**, that `const NFC = require('nfc-pcsc');` or `import NFC from 'nfc-pcsc'` (NFC without brackets) won't work, because there is no default export.  
+It was removed for non-standard behaviour of ES6 modules in ES5 env (see #12 and [v0.6.0 release changelog](https://github.com/pokusew/nfc-pcsc/releases/tag/v0.6.0))
 
 ### Transaction failed error when using `CONNECT_MODE_DIRECT`
 
