@@ -273,7 +273,7 @@ Feel free to open pull request, if you have any useful example, that you'd like 
 
 ### Migration from older versions to 0.6.0
 
-There was a **breaking change in 0.6.0**, as the default export was removed _(because of non-standard behaviour of ES6 modules in ES5 env (see #12 and [v0.6.0 release changelog](https://github.com/pokusew/nfc-pcsc/releases/tag/v0.6.0)))_.
+There was a **breaking change in 0.6.0**, as the default export was removed _(because of non-standard behaviour of ES6 modules in ES5 env (see [#12](https://github.com/pokusew/nfc-pcsc/issues/12) and [v0.6.0 release changelog](https://github.com/pokusew/nfc-pcsc/releases/tag/v0.6.0)))_.
 
 You have to **update all requires or imports** of this library to the following _(note the brackets around NFC)_:
 ```javascript
@@ -350,7 +350,7 @@ const { NFC } = require('nfc-pcsc');
 Take a a look at [How do I require/import this library?](#how-do-i-requireimport-this-library) section for more info.
 
 > **Note**, that `const NFC = require('nfc-pcsc');` or `import NFC from 'nfc-pcsc'` (NFC without brackets) won't work, because there is no default export.  
-It was removed for non-standard behaviour of ES6 modules in ES5 env (see #12 and [v0.6.0 release changelog](https://github.com/pokusew/nfc-pcsc/releases/tag/v0.6.0))
+It was removed for non-standard behaviour of ES6 modules in ES5 env (see [#12](https://github.com/pokusew/nfc-pcsc/issues/12) and [v0.6.0 release changelog](https://github.com/pokusew/nfc-pcsc/releases/tag/v0.6.0))
 
 ### Transaction failed error when using `CONNECT_MODE_DIRECT`
 
