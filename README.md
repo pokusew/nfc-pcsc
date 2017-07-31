@@ -13,6 +13,9 @@ When detecting tags does not work see [Alternative usage](#alternative-usage).
 
 This library uses pscslite native bindings [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) under the hood.
 
+**Psst!** Problems upgrading to 0.6.0? Check out [this migration note](#migration-from-older-versions-to-060).
+
+
 <!-- _**Psst!** You are browsing the documentation for the master branch, [look here](https://github.com/pokusew/nfc-pcsc/tree/v0.6.0) to see the usage of latest published version._ -->
 
 ## Content
@@ -29,11 +32,13 @@ This library uses pscslite native bindings [pokusew/node-pcsclite](https://githu
 - [Reading and writing data](#reading-and-writing-data)
 - [More examples](#more-examples)
 - [FAQ](#faq)
+  - [Migration from older versions to 0.6.0](#migration-from-older-versions-to-060)
   - [Can I use this library in my Electron app?](#can-i-use-this-library-in-my-electron-app)
   - [Do I have to use Babel in my app too?](#do-i-have-to-use-babel-in-my-app-too)
   - [How do I require/import this library?](#how-do-i-requireimport-this-library)
   - [Can I read a NDEF formatted tag?](#can-i-read-a-ndef-formatted-tag)
 - [Frequent errors](#frequent-errors)
+  - [TypeError: NFC is not a constructor](#typeerror-nfc-is-not-a-constructor)
   - [Transaction failed error when using `CONNECT_MODE_DIRECT`](#transaction-failed-error-when-using-connect_mode_direct)
   - [Mifare Classic: Authentication Error after Multiple Writes](#mifare-classic-authentication-error-after-multiple-writes)
 - [License](#license)
@@ -266,6 +271,19 @@ Feel free to open pull request, if you have any useful example, that you'd like 
 
 ## FAQ
 
+### Migration from older versions to 0.6.0
+
+There was a **breaking change in 0.6.0**, as the default export was removed _(because of non-standard behaviour of ES6 modules in ES5 env (see #12 and [v0.6.0 release changelog](https://github.com/pokusew/nfc-pcsc/releases/tag/v0.6.0)))_.
+
+You have to **update all requires or imports** of this library to the following _(note the brackets around NFC)_:
+```javascript
+// in ES6 environment
+import { NFC } from 'nfc-pcsc';
+
+// in ES2015 environment
+const { NFC } = require('nfc-pcsc');
+```
+
 ### Can I use this library in my [Electron](https://electron.atom.io/) app?
 
 **Yes, you can!** It works well.
@@ -320,7 +338,7 @@ import { NFC } from 'nfc-pcsc/src';
 
 ### TypeError: NFC is not a constructor
 
-No worry, just check that you import the library like this _(note that brackets around NFC)_:
+No worry, just check that you import/require the library like this _(note the brackets around NFC)_:
 ```javascript
 // in ES6 environment
 import { NFC } from 'nfc-pcsc';
