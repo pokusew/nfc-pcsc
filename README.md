@@ -34,6 +34,7 @@ This library uses pscslite native bindings [pokusew/node-pcsclite](https://githu
 - [FAQ](#faq)
   - [Migration from older versions to 0.6.0](#migration-from-older-versions-to-060)
   - [Can I use this library in my Electron app?](#can-i-use-this-library-in-my-electron-app)
+  - [Can I use this library in my angular-electron app?](#can-i-use-this-library-in-my-angular-electron-app)
   - [Do I have to use Babel in my app too?](#do-i-have-to-use-babel-in-my-app-too)
   - [How do I require/import this library?](#how-do-i-requireimport-this-library)
   - [Can I read a NDEF formatted tag?](#can-i-read-a-ndef-formatted-tag)
