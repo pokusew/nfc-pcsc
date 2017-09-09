@@ -297,6 +297,10 @@ You can use CI/CD server to build your app for certain platforms.
 For Windows, I recommend you to use [AppVeyor](https://appveyor.com/).  
 For macOS and Linux build, there are plenty of services to choose from, for example [CircleCI](https://circleci.com/), [Travis CI](https://travis-ci.com/) [CodeShip](https://codeship.com/).
 
+### Can I use this library in my [angular-electron](https://github.com/maximegris/angular-electron) app?
+
+**Yes, you can!** But as this library uses Node Native Modules, you must change some config in `package.json` and `webpack.config.js` as described in [this comment](https://github.com/pokusew/nfc-pcsc/issues/24#issuecomment-327038188).
+
 ### Do I have to use Babel in my app too?
 
 **No, you don't have to.** This library works great **in any Node.js 7+ environment** (even in an **Electron** app).
