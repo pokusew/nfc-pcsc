@@ -41,7 +41,7 @@
     "test": "cross-env NODE_ENV=test ava test --verbose"
   },
   "dependencies": {
-    "@fxkai/pcsclite": "^0.4.18"
+    "@fxkai/node-pcsclite": "^0.4.18"
   },
   "devDependencies": {
     "ava": "^0.22.0",
