@@ -45,6 +45,8 @@ class Reader extends EventEmitter {
 		'1': null
 	};
 
+	pendingLoadAuthenticationKey = {};
+
 	static reverseBuffer(src) {
 
 		const buffer = new Buffer(src.length);
@@ -394,23 +396,36 @@ class Reader extends EventEmitter {
 		// key is not in the storage
 		if (!keyNumber) {
 
-			// set key number to first
-			keyNumber = Object.keys(this.keyStorage)[0];
+			// If there isn't already an authentication process happening for this key, start it
+			if (!this.pendingLoadAuthenticationKey[key]) {
 
-			// if this number is not free
-			if (this.keyStorage[keyNumber] !== null) {
-				// try to find any free number
-				const freeNumber = Object.keys(this.keyStorage).find(n => this.keyStorage[n] === null);
-				// if we find, we use it, otherwise the first will be used and rewritten
-				if (freeNumber) {
-					keyNumber = freeNumber;
+				// set key number to first
+				keyNumber = Object.keys(this.keyStorage)[0];
+
+				// if this number is not free
+				if (this.keyStorage[keyNumber] !== null) {
+					// try to find any free number
+					const freeNumber = Object.keys(this.keyStorage).find(n => this.keyStorage[n] === null);
+					// if we find, we use it, otherwise the first will be used and rewritten
+					if (freeNumber) {
+						keyNumber = freeNumber;
+					}
 				}
+
+				// Store the authentication promise in case other blocks are in process of authentication
+				this.pendingLoadAuthenticationKey[key] = this.loadAuthenticationKey(parseInt(keyNumber), key);
+
 			}
 
 			try {
-				await this.loadAuthenticationKey(parseInt(keyNumber), key);
+				await this.pendingLoadAuthenticationKey[key];
 			} catch (err) {
 				throw new AuthenticationError('unable_to_load_key', 'Could not load authentication key into reader.', err);
+			}
+			finally {
+				// remove the loadAuthenticationKey Promise from pendingLoadAuthenticationKey
+				// as it is already resolved or rejected at this point
+				delete this.pendingLoadAuthenticationKey[key];
 			}
 
 		}
