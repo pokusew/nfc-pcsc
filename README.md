@@ -37,7 +37,7 @@ This library uses pscslite native bindings [pokusew/node-pcsclite](https://githu
   - [Can I use this library in my angular-electron app?](#can-i-use-this-library-in-my-angular-electron-app)
   - [Do I have to use Babel in my app too?](#do-i-have-to-use-babel-in-my-app-too)
   - [How do I require/import this library?](#how-do-i-requireimport-this-library)
-  - [Can I read a NDEF formatted tag?](#can-i-read-a-ndef-formatted-tag)
+  - [How to read or write NDEF messages?](#how-to-read-or-write-ndef-messages)
 - [Frequent errors](#frequent-errors)
   - [TypeError: NFC is not a constructor](#typeerror-nfc-is-not-a-constructor)
   - [Transaction failed error when using `CONNECT_MODE_DIRECT`](#transaction-failed-error-when-using-connect_mode_direct)
@@ -332,12 +332,21 @@ If you want to import uncompiled source and transpile it yourself (not recommend
 import { NFC } from 'nfc-pcsc/src';
 ```
 
-### Can I read a NDEF formatted tag?
+### How to read or write NDEF messages?
 
-**Yes, you can!** You can read raw byte card data with `reader.read` method, and then you can parse it with any NDEF parser, e.g. [TapTrack/NdefJS](https://github.com/TapTrack/NdefJS).
+**Yes, you can!** First install nfc-tools:
 
-**Psst!** There is also an example ([ndef.js](/examples/ndef.js)), but it is not finished yet. Feel free to contribute.
+```sh
+npm install nfc-tools --save
+```
 
+Then run the example:
+
+```sh
+npm run example-ndef
+```
+
+Read the doc at https://github.com/somq/nfccard-tool#nfccard-tool
 
 ## Frequent errors
 
