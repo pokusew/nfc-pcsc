@@ -86,8 +86,8 @@ nfc.on('reader', reader => {
 		   */
 		  const message = [
 			{ type: 'text', text: 'I\'m a text message', language: 'en' },
-			{ type: 'uri', uri: 'https://github.com/somq' },
-			{ type: 'aar', packageName: 'https://github.com/somq' },
+			{ type: 'uri', uri: 'https://github.com/somq/nfccard-tool' },
+			{ type: 'aar', packageName: 'com.github.nfccardtool' },
 		  ]
 
 		  // Prepare the buffer to write on the card
