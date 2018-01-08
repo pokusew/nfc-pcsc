@@ -41,7 +41,8 @@
     "test": "cross-env NODE_ENV=test ava test --verbose"
   },
   "dependencies": {
-    "@pokusew/pcsclite": "^0.4.18"
+    "@pokusew/pcsclite": "^0.4.18",
+    "nfccard-tool": "^0.1.0"
   },
   "devDependencies": {
     "ava": "^0.22.0",
