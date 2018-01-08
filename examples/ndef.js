@@ -60,52 +60,52 @@ nfc.on('reader', reader => {
 		} catch (err) {
 		console.error(`error when reading data`, err);
 		}
-	});
 
-
-	/**
-	 * Read a card
-	 */
-
-	try {
 
 		/**
-		 * READ MESSAGE AND ITS RECORDS
+		 * Read a card
 		 */
 
-		/**
-		 *  1 - READ HEADER
-		 *  Read from block 0 to block 4 (20 bytes length) in order to parse tag information
-		 */
-		// Starts reading in block 0 until end of block 4
-		const cardHeader = await reader.read(0, 20);
+		try {
 
-		const tag = nfcCard.parseInfo(cardHeader);
-		console.log('tag info:', JSON.stringify(tag));
+			/**
+			 * READ MESSAGE AND ITS RECORDS
+			 */
 
-		/**
-		 *  2 - Read the NDEF message and parse it if it's supposed there is one
-		 */
+			/**
+			 *  1 - READ HEADER
+			 *  Read from block 0 to block 4 (20 bytes length) in order to parse tag information
+			 */
+			// Starts reading in block 0 until end of block 4
+			const cardHeader = await reader.read(0, 20);
 
-		// There might be a NDEF message and we are able to read the tag
-		if(nfcCard.isFormatedAsNDEF() && nfcCard.hasReadPermissions() && nfcCard.hasNDEFMessage()) {
+			const tag = nfcCard.parseInfo(cardHeader);
+			console.log('tag info:', JSON.stringify(tag));
 
-			// Read the appropriate length to get the NDEF message as buffer
-			const NDEFRawMessage = await reader.read(4, nfcCard.getNDEFMessageLengthToRead()); // starts reading in block 0 until 6
+			/**
+			 *  2 - Read the NDEF message and parse it if it's supposed there is one
+			 */
 
-			// Parse the buffer as a NDEF raw message
-			const NDEFMessage = nfcCard.parseNDEF(NDEFRawMessage);
+			// There might be a NDEF message and we are able to read the tag
+			if(nfcCard.isFormatedAsNDEF() && nfcCard.hasReadPermissions() && nfcCard.hasNDEFMessage()) {
 
-			console.log('NDEFMessage:', NDEFMessage);
+				// Read the appropriate length to get the NDEF message as buffer
+				const NDEFRawMessage = await reader.read(4, nfcCard.getNDEFMessageLengthToRead()); // starts reading in block 0 until 6
 
-		} else {
-			console.log('Could not parse anything from this tag: \n The tag is either empty, locked, has a wrong NDEF format or is unreadable.')
+				// Parse the buffer as a NDEF raw message
+				const NDEFMessage = nfcCard.parseNDEF(NDEFRawMessage);
+
+				console.log('NDEFMessage:', NDEFMessage);
+
+			} else {
+				console.log('Could not parse anything from this tag: \n The tag is either empty, locked, has a wrong NDEF format or is unreadable.')
+			}
+
+		} catch (err) {
+			console.error(`error when reading data`, err);
 		}
 
-	} catch (err) {
-		console.error(`error when reading data`, err);
-	}
-
+	});
 
 	reader.on('card.off', card => {
 		console.log(`${reader.reader.name}  card removed`, card);
