@@ -418,7 +418,7 @@ class Reader extends EventEmitter {
 			}
 
 			try {
-				await this.pendingLoadAuthenticationKey[key];
+				keyNumber = await this.pendingLoadAuthenticationKey[key];
 			} catch (err) {
 				throw new AuthenticationError('unable_to_load_key', 'Could not load authentication key into reader.', err);
 			}
