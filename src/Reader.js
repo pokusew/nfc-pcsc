@@ -396,15 +396,8 @@ class Reader extends EventEmitter {
 		// key is not in the storage
 		if (!keyNumber) {
 
-			// is not being written now?
-			if (this.pendingLoadAuthenticationKey[key]) {
-				try {
-					keyNumber = await this.pendingLoadAuthenticationKey[key];
-				} catch (err) {
-					throw new AuthenticationError('unable_to_load_key', 'Could not load authentication key into reader.', err);
-				}
-			}
-			else {
+			// If there isn't already an authentication process happening for this key, start it
+			if (!this.pendingLoadAuthenticationKey[key]) {
 
 				// set key number to first
 				keyNumber = Object.keys(this.keyStorage)[0];
@@ -419,13 +412,20 @@ class Reader extends EventEmitter {
 					}
 				}
 
-				try {
-					this.pendingLoadAuthenticationKey[key] = this.loadAuthenticationKey(parseInt(keyNumber), key);
-					await this.pendingLoadAuthenticationKey[key];
-				} catch (err) {
-					throw new AuthenticationError('unable_to_load_key', 'Could not load authentication key into reader.', err);
-				}
+				// Store the authentication promise in case other blocks are in process of authentication
+				this.pendingLoadAuthenticationKey[key] = this.loadAuthenticationKey(parseInt(keyNumber), key);
 
+			}
+
+			try {
+				keyNumber = await this.pendingLoadAuthenticationKey[key];
+			} catch (err) {
+				throw new AuthenticationError('unable_to_load_key', 'Could not load authentication key into reader.', err);
+			}
+			finally {
+				// remove the loadAuthenticationKey Promise from pendingLoadAuthenticationKey
+				// as it is already resolved or rejected at this point
+				delete this.pendingLoadAuthenticationKey[key];
 			}
 
 		}
