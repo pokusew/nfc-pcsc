@@ -11,7 +11,7 @@ Built-in support for auto-reading **card UIDs** and reading tags emulated with [
 It is tested to work with **ACR122 USB reader** but it should work with **all PC/SC compliant devices**.  
 When detecting tags does not work see [Alternative usage](#alternative-usage).
 
-This library uses pscslite native bindings [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) under the hood.
+This library uses pcsclite native bindings [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) under the hood.
 
 **Psst!** Problems upgrading to 0.6.0? Check out [this migration note](#migration-from-older-versions-to-060).
 
