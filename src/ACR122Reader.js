@@ -86,8 +86,8 @@ class ACR122Reader extends Reader {
 		 |   3 | Green LED State Mask             | 1 = Update the State; 0 = No change |
 		 |   4 | Initial Red LED Blinking State   | 1 = On; 0 = Off                     |
 		 |   5 | Initial Green LED Blinking State | 1 = On; 0 = Off                     |
-		 |   6 | Red LED Blinking Mask            | 1 = Blink ; 0 = Not Blink            |
-		 |   7 | Green LED Blinking Mask          | 1 = Blink ; 0 = Not Blink            |
+		 |   6 | Red LED Blinking Mask            | 1 = Blink; 0 = Not Blink            |
+		 |   7 | Green LED Blinking Mask          | 1 = Blink; 0 = Not Blink            |
 		 +-----+----------------------------------+-------------------------------------+
 		 */
 
