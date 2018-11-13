@@ -32,10 +32,10 @@
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pokusew/nfc-pcsc.git"
+    "url": "https://github.com/matyulabz/nfc-pcsc.git"
   },
   "scripts": {
-    "install": "babel src --out-dir dist",
+    "build": "babel src --out-dir dist",
     "example": "node -r babel-register examples/index.js",
     "example-basic": "node -r babel-register examples/basic.js",
     "example-desfire": "node -r babel-register examples/desfire.js",
