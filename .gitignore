@@ -16,6 +16,4 @@ Desktop.ini
 **/.idea/workspace.xml
 **/.idea/tasks.xml
 
-dist/
-
 *.log
