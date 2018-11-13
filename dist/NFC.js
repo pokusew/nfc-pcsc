@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _pcsclite = require("@pokusew/pcsclite");
+var _pcsclite = require("@matyulabz/pcsclite");
 
 var _pcsclite2 = _interopRequireDefault(_pcsclite);
 

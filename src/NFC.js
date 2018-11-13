@@ -1,6 +1,6 @@
 "use strict";
 
-import pcsclite from '@pokusew/pcsclite';
+import pcsclite from '@matyulabz/pcsclite';
 import EventEmitter from 'events';
 import Reader from './Reader';
 import ACR122Reader from './ACR122Reader';
