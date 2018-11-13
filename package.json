@@ -47,7 +47,7 @@
     "test": "cross-env NODE_ENV=test ava test --verbose"
   },
   "dependencies": {
-    "@matyulabz/pcsclite": "https://github.com/matyulabz/node-pcsclite.git"
+    "@pokusew/pcsclite": "https://github.com/matyulabz/node-pcsclite.git"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.5",
