@@ -47,7 +47,7 @@
     "test": "cross-env NODE_ENV=test ava test --verbose"
   },
   "dependencies": {
-    "@pokusew/pcsclite": "^0.4.18"
+    "matyulabz/pcsclite": "^0.4.18"
   },
   "devDependencies": {
     "ava": "^0.25.0",
