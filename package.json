@@ -35,7 +35,7 @@
     "url": "https://github.com/pokusew/nfc-pcsc.git"
   },
   "scripts": {
-    "build": "babel src --out-dir dist",
+    "install": "babel src --out-dir dist",
     "example": "node -r babel-register examples/index.js",
     "example-basic": "node -r babel-register examples/basic.js",
     "example-desfire": "node -r babel-register examples/desfire.js",
