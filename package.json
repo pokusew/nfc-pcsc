@@ -35,7 +35,7 @@
     "url": "https://github.com/pokusew/nfc-pcsc.git"
   },
   "scripts": {
-    "prepare": "babel src --out-dir dist",
+    "build": "babel src --out-dir dist",
     "example": "node -r babel-register examples/index.js",
     "example-basic": "node -r babel-register examples/basic.js",
     "example-desfire": "node -r babel-register examples/desfire.js",
@@ -45,6 +45,7 @@
     "example-uid-logger": "node -r babel-register examples/uid-logger.js",
     "example-without-auto": "node -r babel-register examples/without-auto.js",
     "test": "cross-env NODE_ENV=test ava test --verbose"
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@matyulabz/pcsclite": "https://github.com/matyulabz/node-pcsclite.git"
