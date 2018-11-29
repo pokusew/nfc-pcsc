@@ -521,8 +521,8 @@ class Reader extends EventEmitter {
 		const packet = new Buffer([
 			readClass, // Class
 			0xb0, // Ins
-			0x00, // P1
-			blockNumber, // P2: Block Number
+			(blockNumber >> 8) & 0xFF, // P1
+			blockNumber & 0xFF, // P2: Block Number
 			length  // Le: Number of Bytes to Read (Maximum 16 bytes)
 		]);
 
