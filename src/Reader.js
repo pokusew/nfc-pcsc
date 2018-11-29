@@ -734,17 +734,19 @@ class Reader extends EventEmitter {
 		}
 
 		// APDU CMD: Select Apdu
+		const aid = Buffer.from(this._parsedAid);
 		const packetHeader = Buffer.from([
 			0x00, // Class
 			0xa4, // INS
 			0x04, // P1
 			0x00, // P2
-			0x05  // Le
+			aid.length, // Lc
+		]);
+		const packetFooter = Buffer.from([
+			0x00, // Le
 		]);
 
-		const aid = Buffer.from(this._parsedAid);
-
-		const packet = Buffer.concat([packetHeader, aid]);
+		const packet = Buffer.concat([packetHeader, aid, packetFooter]);
 
 		try {
 
