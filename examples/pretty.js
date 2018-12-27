@@ -1,67 +1,54 @@
 "use strict";
 
-import winston from 'winston';
 import util from 'util';
 import chalk from 'chalk';
-import prettyjson from 'prettyjson';
+import winston from 'winston';
+import { SPLAT } from 'triple-beam';
 
 
-const prettyjsonOptions = {
-	keysColor: 'cyan',
-	dashColor: 'magenta',
-	stringColor: 'gray'
+const colors = {
+	exception: 'red',
+	error: 'red',
+	warn: 'yellow',
+	info: 'green',
+	verbose: 'blue',
+	debug: 'blue',
+	silly: 'gray',
 };
 
-function json(data) {
-	return prettyjson.render(data, prettyjsonOptions);
-}
+winston.addColors(colors);
 
-const logger = new (winston.Logger)({
+const printf = winston.format.printf(({ timestamp, level, message, [SPLAT]: splat }) => {
+
+	let splatString = '';
+
+	if (splat) {
+		splatString = ' ' + (splat.length > 1 ? util.inspect(splat, { colors: true }) : util.inspect(splat[0], { colors: true }));
+	}
+
+	// see https://stackoverflow.com/questions/10729276/how-can-i-get-the-full-object-in-node-jss-console-log-rather-than-object
+	return `${timestamp ? timestamp + ' – ' : ''}${level}: ${message}${splatString}`;
+
+});
+
+const FORMAT = winston.format.combine(
+	winston.format.timestamp({
+		format: () => chalk.gray(new Date().toLocaleTimeString()),
+	}),
+	winston.format.colorize(),
+	printf,
+);
+
+const logger = winston.createLogger({
 	transports: [
 		new (winston.transports.Console)({
 			level: 'silly',
-			timestamp: function () {
-				return (new Date).toLocaleTimeString();
-			},
-			formatter: formatConsoleLog
-		})
-	]
+			format: FORMAT,
+		}),
+	],
+	exitOnError: true,
+
 });
 
-function formatLevel(level) {
-
-	switch (level) {
-
-		case 'info':
-			return chalk.green(level);
-
-		case 'error':
-			return chalk.red(level);
-
-		default:
-			return level;
-
-	}
-
-}
-
-function formatConsoleLog(options) {
-
-	const time = chalk.gray(options.timestamp());
-	const level = ' ' + formatLevel(options.level);
-	const reader = options.meta.reader ? ' ' + chalk.yellow(options.meta.reader) : '';
-
-
-	if (options.meta.reader) {
-		delete options.meta.reader;
-	}
-
-	let log = time + level + reader + '  '
-		+ (options.message !== undefined ? options.message : '')
-		+ (options.meta && Object.keys(options.meta).length ? '\n' + json(options.meta) : '' );
-
-	return log;
-
-}
 
 export default logger;

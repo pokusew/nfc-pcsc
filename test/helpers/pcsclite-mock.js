@@ -43,6 +43,6 @@ class MockCard extends EventEmitter {
 
 export default function () {
 
-	return new PCSCLiteMock();
+	return new MockPCSC();
 
 }

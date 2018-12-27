@@ -21,7 +21,7 @@ const minilogger = {
 	debug: log,
 	info: log,
 	warn: log,
-	error: log
+	error: log,
 };
 
 const nfc = new NFC(minilogger); // const nfc = new NFC(minilogger); // optionally you can pass logger to see internal debug logs

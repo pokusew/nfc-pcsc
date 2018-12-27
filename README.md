@@ -36,6 +36,7 @@ This library uses pcsclite native bindings [pokusew/node-pcsclite](https://githu
   - [Can I use this library in my Electron app?](#can-i-use-this-library-in-my-electron-app)
   - [Can I use this library in my angular-electron app?](#can-i-use-this-library-in-my-angular-electron-app)
   - [Do I have to use Babel in my app too?](#do-i-have-to-use-babel-in-my-app-too)
+  - [Which Node.js versions are supported?](#which-nodejs-versions-are-supported)
   - [How do I require/import this library?](#how-do-i-requireimport-this-library)
   - [Can I read a NDEF formatted tag?](#can-i-read-a-ndef-formatted-tag)
 - [Frequent errors](#frequent-errors)
@@ -49,7 +50,7 @@ This library uses pcsclite native bindings [pokusew/node-pcsclite](https://githu
 
 ## Installation
 
-> **Requirements:** **Node.js 7+** (it might work under 6.x but it is not tested)
+> **Requirements:** **Node.js 8+** (see [this FAQ](#which-nodejs-versions-are-supported) for more info)
 
 > **Note:** This library uses system PC/SC API. On **Windows and macOS** it works out of the box, but on Linux you have to do some steps as described [here](https://github.com/pokusew/node-pcsclite#installation)
 
@@ -101,7 +102,7 @@ When a NFC tag (card) is attached to the reader, the following is done:
 > npm run example
 > ```
 
-You can use this library in any Node.js 7+ environment (even in an Electron app). 
+You can use this library in any Node.js 8+ environment (even in an Electron app). 
 
 ```javascript
 // in ES6
@@ -304,7 +305,7 @@ For macOS and Linux build, there are plenty of services to choose from, for exam
 
 ### Do I have to use Babel in my app too?
 
-**No, you don't have to.** This library works great **in any Node.js 7+ environment** (even in an **Electron** app).
+**No, you don't have to.** This library works great **in any Node.js 8+ environment** (even in an **Electron** app).
 
 > Psst! Instead of using **async/await** (like in examples), you can use Promises.
 > ```
@@ -314,7 +315,13 @@ For macOS and Linux build, there are plenty of services to choose from, for exam
 >   .catch(err => ...))
 > ```
 
-Internally it uses Babel under the hood to transpile things, that are not supported in Node.js v7 (e.g.: import/export). The transpiled code (in the dist folder) is then published into npm and when you install and require the library, it requires the transpiled code, so you don't have to worry about anything.
+Babel is used under the hood to transpile features, that are not supported in **Node.js 8** (for example ES6 modules – import/export, see [.babelrc](/.babelrc) for list of used plugins). The transpiled code (in the dist folder) is then published into npm and when you install and require the library, the transpiled code is used, so you don't have to worry about anything.
+
+### Which Node.js versions are supported?
+
+nfc-pcsc officially supports **Node.js versions greater than or equal to 8** (i.e. Node.js **8.x, 9.x, 10.x, 11.x**).
+
+_Note: If you need to use nfc-pcsc in **Node.js 7.x**, it is also possible, but you'll have to transpile async/await using Babel (e.g. using [@babel/plugin-transform-async-to-generator](https://babeljs.io/docs/en/babel-plugin-transform-async-to-generator))._
 
 ### How do I require/import this library?
 

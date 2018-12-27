@@ -14,7 +14,7 @@ import {
 	CARD_NOT_CONNECTED,
 	OPERATION_FAILED,
 	UNKNOWN_ERROR,
-	FAILURE
+	FAILURE,
 } from './errors';
 
 
@@ -42,14 +42,15 @@ class Reader extends EventEmitter {
 
 	keyStorage = {
 		'0': null,
-		'1': null
+		'1': null,
 	};
 
 	pendingLoadAuthenticationKey = {};
 
+	// TODO: better way?
 	static reverseBuffer(src) {
 
-		const buffer = new Buffer(src.length);
+		const buffer = Buffer.allocUnsafe(src.length);
 
 		for (let i = 0, j = src.length - 1; i <= j; ++i, --j) {
 			buffer[i] = src[j];
@@ -123,7 +124,7 @@ class Reader extends EventEmitter {
 				warn: function () {
 				},
 				error: function () {
-				}
+				},
 			};
 		}
 
@@ -243,7 +244,7 @@ class Reader extends EventEmitter {
 
 				this.connection = {
 					type: modes[mode],
-					protocol: protocol
+					protocol: protocol,
 				};
 
 				this.logger.info('connected', this.connection);
@@ -350,14 +351,14 @@ class Reader extends EventEmitter {
 		}
 
 		// CMD: Load Authentication Keys
-		const packet = new Buffer([
+		const packet = Buffer.from([
 			0xff, // Class
 			0x82, // INS
 			0x00, // P1: Key Structure (0x00 = Key is loaded into the reader volatile memory.)
 			keyNumber, // P2: Key Number (00h ~ 01h = Key Location. The keys will disappear once the reader is disconnected from the PC)
 			0x06, // Lc
 			// Data In: Key (6 bytes)
-			...keyData
+			...keyData,
 		]);
 
 		let response = null;
@@ -421,8 +422,7 @@ class Reader extends EventEmitter {
 				keyNumber = await this.pendingLoadAuthenticationKey[key];
 			} catch (err) {
 				throw new AuthenticationError('unable_to_load_key', 'Could not load authentication key into reader.', err);
-			}
-			finally {
+			} finally {
 				// remove the loadAuthenticationKey Promise from pendingLoadAuthenticationKey
 				// as it is already resolved or rejected at this point
 				delete this.pendingLoadAuthenticationKey[key];
@@ -432,7 +432,7 @@ class Reader extends EventEmitter {
 
 		const packet = !obsolete ? (
 			// CMD: Authentication
-			new Buffer([
+			Buffer.from([
 				0xff, // Class
 				0x86, // INS
 				0x00, // P1
@@ -447,13 +447,13 @@ class Reader extends EventEmitter {
 			])
 		) : (
 			// CMD: Authentication (obsolete)
-			new Buffer([
+			Buffer.from([
 				0xff, // Class
 				0x88, // INS
 				0x00, // P1
 				blockNumber, // P2: Block Number
 				keyType, // P3: Key Type
-				keyNumber // Data In: Key Number
+				keyNumber, // Data In: Key Number
 			])
 		);
 
@@ -518,12 +518,12 @@ class Reader extends EventEmitter {
 		}
 
 		// APDU CMD: Read Binary Blocks
-		const packet = new Buffer([
+		const packet = Buffer.from([
 			readClass, // Class
 			0xb0, // Ins
 			(blockNumber >> 8) & 0xFF, // P1
 			blockNumber & 0xFF, // P2: Block Number
-			length  // Le: Number of Bytes to Read (Maximum 16 bytes)
+			length,  // Le: Number of Bytes to Read (Maximum 16 bytes)
 		]);
 
 		let response = null;
@@ -596,7 +596,7 @@ class Reader extends EventEmitter {
 		}
 
 		// APDU CMD: Update Binary Block
-		const packetHeader = new Buffer([
+		const packetHeader = Buffer.from([
 			0xff, // Class
 			0xd6, // Ins
 			0x00, // P1
@@ -664,12 +664,12 @@ class Reader extends EventEmitter {
 		this.logger.info('processing ISO 14443-3 tag', this.card);
 
 		// APDU CMD: Get Data
-		const packet = new Buffer([
+		const packet = Buffer.from([
 			0xff, // Class
 			0xca, // INS
 			0x00, // P1: Get current card UID
 			0x00, // P2
-			0x00  // Le: Full Length of UID
+			0x00, // Le: Full Length of UID
 		]);
 
 		try {
@@ -691,7 +691,7 @@ class Reader extends EventEmitter {
 			// an error occurred
 			if (statusCode !== 0x9000) {
 
-				const error = new GetUIDError(OPERATION_FAILED, 'Could not get card UID.',);
+				const error = new GetUIDError(OPERATION_FAILED, 'Could not get card UID.');
 				this.emit('error', error);
 
 				return;
@@ -733,7 +733,8 @@ class Reader extends EventEmitter {
 			return;
 		}
 
-		// APDU CMD: Select Apdu
+		// APDU CMD: SELECT FILE
+		// see http://cardwerk.com/smart-card-standard-iso7816-4-section-6-basic-interindustry-commands/#chap6_11_3
 		const aid = Buffer.from(this._parsedAid);
 		const packetHeader = Buffer.from([
 			0x00, // Class
@@ -787,7 +788,7 @@ class Reader extends EventEmitter {
 
 			this.emit('card', {
 				...this.card,
-				data: data
+				data: data,
 			});
 
 		} catch (err) {

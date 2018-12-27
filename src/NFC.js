@@ -30,7 +30,7 @@ class NFC extends EventEmitter {
 				warn: function () {
 				},
 				error: function () {
-				}
+				},
 			};
 		}
 

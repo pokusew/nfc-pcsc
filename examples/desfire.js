@@ -17,8 +17,8 @@ const desfire = {
 	read: {
 		fileId: [0x02],
 		offset: [0x00, 0x00, 0x00],
-		length: [14, 0x00, 0x00]
-	}
+		length: [14, 0x00, 0x00],
+	},
 };
 
 
@@ -142,7 +142,7 @@ nfc.on('reader', async reader => {
 
 			return {
 				RndA,
-				RndB
+				RndB,
 			};
 
 		};
@@ -168,7 +168,7 @@ nfc.on('reader', async reader => {
 			await selectApplication();
 
 			// step 2
-			const key = new Buffer(desfire.key, 'hex');
+			const key = Buffer.from(desfire.key, 'hex');
 			await authenticate(key);
 
 			// step 3

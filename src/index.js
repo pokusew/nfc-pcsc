@@ -7,7 +7,7 @@ import Reader, {
 	KEY_TYPE_A,
 	KEY_TYPE_B,
 	CONNECT_MODE_CARD,
-	CONNECT_MODE_DIRECT
+	CONNECT_MODE_DIRECT,
 } from './Reader';
 import ACR122Reader from './ACR122Reader';
 import {
@@ -24,7 +24,7 @@ import {
 	AuthenticationError,
 	ConnectError,
 	DisconnectError,
-	GetUIDError
+	GetUIDError,
 } from './errors';
 
 export {
@@ -50,5 +50,5 @@ export {
 	AuthenticationError,
 	ConnectError,
 	DisconnectError,
-	GetUIDError
+	GetUIDError,
 };
