@@ -483,7 +483,7 @@ class Reader extends EventEmitter {
 
 	}
 
-	async read(blockNumber, length, blockSize = 4, packetSize = 16) {
+	async read(blockNumber, length, blockSize = 4, packetSize = 16, readClass = 0xff) {
 
 		if (!this.card) {
 			throw new ReadError(CARD_NOT_CONNECTED);
@@ -505,7 +505,7 @@ class Reader extends EventEmitter {
 
 				// console.log(i, block, size);
 
-				commands.push(this.read(block, size, blockSize, packetSize));
+				commands.push(this.read(block, size, blockSize, packetSize, readClass));
 
 			}
 
@@ -519,10 +519,10 @@ class Reader extends EventEmitter {
 
 		// APDU CMD: Read Binary Blocks
 		const packet = new Buffer([
-			0xff, // Class
+			readClass, // Class
 			0xb0, // Ins
-			0x00, // P1
-			blockNumber, // P2: Block Number
+			(blockNumber >> 8) & 0xFF, // P1
+			blockNumber & 0xFF, // P2: Block Number
 			length  // Le: Number of Bytes to Read (Maximum 16 bytes)
 		]);
 
@@ -734,17 +734,19 @@ class Reader extends EventEmitter {
 		}
 
 		// APDU CMD: Select Apdu
+		const aid = Buffer.from(this._parsedAid);
 		const packetHeader = Buffer.from([
 			0x00, // Class
 			0xa4, // INS
 			0x04, // P1
 			0x00, // P2
-			0x05  // Le
+			aid.length, // Lc
+		]);
+		const packetFooter = Buffer.from([
+			0x00, // Le
 		]);
 
-		const aid = Buffer.from(this._parsedAid);
-
-		const packet = Buffer.concat([packetHeader, aid]);
+		const packet = Buffer.concat([packetHeader, aid, packetFooter]);
 
 		try {
 
