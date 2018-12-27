@@ -147,14 +147,39 @@ nfc.on('reader', async reader => {
 
 		};
 
+		const listApps = async () => {
+			const res = await reader.transmit(Buffer.from([0x90, 0x6a, 0x00, 0x00, 0x00]), 32);
+			
+			if (res.slice(-1)[0] !== 0x00) {
+				throw new Error('error in step 3 - list apps');
+			}
+
+			// empty card
+			if (res.length < 3) {
+				pretty.info(`no apps found`);
+				return [];
+			}
+
+			const resApps = res.slice(0, res.length - res.length % 3);
+			let i = 0;
+			let apps = [];
+
+			for (i = 0; i < resApps.length; i++) {
+				apps.push(resApps.slice(i ,i + 3));
+				i += 2
+			}
+			pretty.info(`apps found`, apps);
+			return apps;
+		}
+
 		const readData = async () => {
 
 			// 3: [0xBD] ReadData(FileNo,Offset,Length) [8bytes] - Reads data from Standard Data Files or Backup Data Files
 			const res = await send(wrap(0xbd, [desfire.read.fileId, ...desfire.read.offset, ...desfire.read.length]), 'step 3 - read', 255);
-
+			
 			// something went wrong
 			if (res.slice(-1)[0] !== 0x00) {
-				throw new Error('error in step 3 - read');
+				throw new Error('error in step 4 - read');
 			}
 
 			console.log('data', res);
@@ -172,7 +197,13 @@ nfc.on('reader', async reader => {
 			await authenticate(key);
 
 			// step 3
-			await readData();
+			const apps = await listApps();
+
+			if (apps.length > 0) {
+				// step 4
+				await readData();
+			}
+			
 
 
 		} catch (err) {
