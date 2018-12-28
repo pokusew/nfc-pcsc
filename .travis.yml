@@ -19,7 +19,7 @@ before_install:
   - yarn global add node-gyp
 
 install:
-  - yarn
+  - yarn --ignore-engines # AVA is not officially supported on Node.js 9.x
 
 before_script:
   - yarn build
