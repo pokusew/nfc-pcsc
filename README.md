@@ -43,6 +43,7 @@ This library uses pcsclite native bindings [pokusew/node-pcsclite](https://githu
   - [TypeError: NFC is not a constructor](#typeerror-nfc-is-not-a-constructor)
   - [Transaction failed error when using `CONNECT_MODE_DIRECT`](#transaction-failed-error-when-using-connect_mode_direct)
   - [Mifare Classic: Authentication Error after Multiple Writes](#mifare-classic-authentication-error-after-multiple-writes)
+  - [Reading data from a type 4 tags inside a Elsys.se sensors](#reading-data-from-a-type-4-tags-inside-a-elsysse-sensors)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
