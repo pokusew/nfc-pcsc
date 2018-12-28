@@ -1,7 +1,7 @@
 # Travis CI config file
 # https://docs.travis-ci.com/
 
-dist: trusty
+dist: xenial
 
 language: node_js
 
@@ -13,6 +13,10 @@ node_js:
 
 cache:
   yarn: true
+
+before_install:
+  - sudo apt-get install -y libpcsclite1 libpcsclite-dev pcscd
+  - yarn global add node-gyp
 
 install:
   - yarn
