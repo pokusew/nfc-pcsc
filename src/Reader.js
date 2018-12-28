@@ -188,7 +188,7 @@ class Reader extends EventEmitter {
 						await this.connect();
 
 						if (!this.autoProcessing) {
-							this.emit('card', this.card);
+							this.emit('card', { ...this.card });
 							return;
 						}
 
