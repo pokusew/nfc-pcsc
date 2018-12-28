@@ -48,7 +48,7 @@
     "test": "cross-env NODE_ENV=test ava test --verbose"
   },
   "dependencies": {
-    "@pokusew/pcsclite": "^0.5.0"
+    "@pokusew/pcsclite": "^0.5.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
