@@ -18,8 +18,8 @@ import {
 } from './errors';
 
 
-export const TAG_ISO_14443_3 = 'TAG_ISO_14443_3';
-export const TAG_ISO_14443_4 = 'TAG_ISO_14443_4';
+export const TAG_ISO_14443_3 = 'TAG_ISO_14443_3'; // ISO/IEC 14443-3 tags
+export const TAG_ISO_14443_4 = 'TAG_ISO_14443_4'; // ISO/IEC 14443-4 tags
 
 export const KEY_TYPE_A = 0x60;
 export const KEY_TYPE_B = 0x61;
@@ -146,7 +146,7 @@ class Reader extends EventEmitter {
 
 				if ((changes & this.reader.SCARD_STATE_EMPTY) && (status.state & this.reader.SCARD_STATE_EMPTY)) {
 
-					this.logger.info('card removed');
+					this.logger.debug('card removed');
 
 					if (this.card) {
 						this.emit('card.off', { ...this.card });
@@ -170,7 +170,7 @@ class Reader extends EventEmitter {
 
 					const atr = status.atr;
 
-					this.logger.info('card inserted', atr);
+					this.logger.debug('card inserted', atr);
 
 					this.card = {};
 
@@ -204,7 +204,7 @@ class Reader extends EventEmitter {
 
 		this.reader.on('end', () => {
 
-			this.logger.info('reader removed');
+			this.logger.debug('reader removed');
 
 			this.emit('end');
 
@@ -223,7 +223,7 @@ class Reader extends EventEmitter {
 			throw new ConnectError('invalid_mode', 'Invalid mode')
 		}
 
-		this.logger.info('trying to connect', mode, modes[mode]);
+		this.logger.debug('trying to connect', mode, modes[mode]);
 
 		return new Promise((resolve, reject) => {
 
@@ -244,7 +244,7 @@ class Reader extends EventEmitter {
 					protocol: protocol,
 				};
 
-				this.logger.info('connected', this.connection);
+				this.logger.debug('connected', this.connection);
 
 				return resolve(this.connection);
 
@@ -260,7 +260,7 @@ class Reader extends EventEmitter {
 			throw new DisconnectError('not_connected', 'Reader in not connected. No need for disconnecting.')
 		}
 
-		this.logger.info('trying to disconnect', this.connection);
+		this.logger.debug('trying to disconnect', this.connection);
 
 		return new Promise((resolve, reject) => {
 
@@ -275,7 +275,7 @@ class Reader extends EventEmitter {
 
 				this.connection = null;
 
-				this.logger.info('disconnected');
+				this.logger.debug('disconnected');
 
 				return resolve(true);
 
@@ -293,7 +293,7 @@ class Reader extends EventEmitter {
 
 		return new Promise((resolve, reject) => {
 
-			this.logger.log('transmitting', data, responseMaxLength);
+			this.logger.debug('transmitting', data, responseMaxLength);
 
 			this.reader.transmit(data, responseMaxLength, this.connection.protocol, (err, response) => {
 
@@ -318,7 +318,7 @@ class Reader extends EventEmitter {
 
 		return new Promise((resolve, reject) => {
 
-			this.logger.log('transmitting control', data, responseMaxLength);
+			this.logger.debug('transmitting control', data, responseMaxLength);
 
 			this.reader.control(data, this.reader.IOCTL_CCID_ESCAPE, responseMaxLength, (err, response) => {
 
@@ -374,7 +374,7 @@ class Reader extends EventEmitter {
 
 			response = await this.transmit(packet, 2);
 
-			this.logger.info('response received', response);
+			this.logger.debug('response received', response);
 
 
 		} catch (err) {
@@ -470,7 +470,7 @@ class Reader extends EventEmitter {
 
 			response = await this.transmit(packet, 2);
 
-			this.logger.info('response received', response);
+			this.logger.debug('response received', response);
 
 
 		} catch (err) {
@@ -496,7 +496,7 @@ class Reader extends EventEmitter {
 			throw new ReadError(CARD_NOT_CONNECTED);
 		}
 
-		this.logger.info('reading data from card', this.card);
+		this.logger.debug('reading data from card', this.card);
 
 		if (length > packetSize) {
 
@@ -539,12 +539,16 @@ class Reader extends EventEmitter {
 
 			response = await this.transmit(packet, length + 2);
 
-			this.logger.info('response received', response);
+			this.logger.debug('response received', response);
 
 		} catch (err) {
 
 			throw new ReadError(null, null, err);
 
+		}
+
+		if (response.length < 2) {
+			throw new ReadError(OPERATION_FAILED, `Read operation failed: Invalid response length ${response.length}. Expected minimal length is 2 bytes.`);
 		}
 
 		const statusCode = response.slice(-2).readUInt16BE(0);
@@ -555,7 +559,7 @@ class Reader extends EventEmitter {
 
 		const data = response.slice(0, -2);
 
-		this.logger.info('data', data);
+		this.logger.debug('data', data);
 
 		return data;
 
@@ -567,7 +571,7 @@ class Reader extends EventEmitter {
 			throw new WriteError(CARD_NOT_CONNECTED);
 		}
 
-		this.logger.info('writing data to card', this.card);
+		this.logger.debug('writing data to card', this.card);
 
 		if (data.length < blockSize || data.length % blockSize !== 0) {
 			throw new WriteError('invalid_data_length', 'Invalid data length. You can only update the entire data block(s).');
@@ -619,7 +623,7 @@ class Reader extends EventEmitter {
 
 			response = await this.transmit(packet, 2);
 
-			this.logger.info('response received', response);
+			this.logger.debug('response received', response);
 
 
 		} catch (err) {
@@ -628,7 +632,11 @@ class Reader extends EventEmitter {
 
 		}
 
-		const statusCode = response.readUInt16BE(0);
+		if (response.length < 2) {
+			throw new WriteError(OPERATION_FAILED, `Write operation failed: Invalid response length ${response.length}. Expected minimal length is 2 bytes.`);
+		}
+
+		const statusCode = response.slice(-2).readUInt16BE(0);
 
 		if (statusCode !== 0x9000) {
 			throw new WriteError(OPERATION_FAILED, `Write operation failed: Status code: 0x${statusCode.toString(16)}`);
@@ -644,7 +652,7 @@ class Reader extends EventEmitter {
 			return false;
 		}
 
-		this.logger.info('handling tag', this.card);
+		this.logger.debug('handling tag', this.card);
 
 		switch (this.card.standard) {
 
@@ -668,7 +676,7 @@ class Reader extends EventEmitter {
 			return false;
 		}
 
-		this.logger.info('processing ISO 14443-3 tag', this.card);
+		this.logger.debug('processing ISO 14443-3 tag', this.card);
 
 		// APDU CMD: Get Data
 		const packet = Buffer.from([
@@ -685,7 +693,7 @@ class Reader extends EventEmitter {
 
 			if (response.length < 2) {
 
-				const error = new GetUIDError('invalid_response', `Invalid response length ${response.length}. Expected minimal length was 2 bytes.`);
+				const error = new GetUIDError('invalid_response', `Invalid response length ${response.length}. Expected minimal length is 2 bytes.`);
 				this.emit('error', error);
 
 				return;
@@ -730,7 +738,7 @@ class Reader extends EventEmitter {
 			return false;
 		}
 
-		this.logger.info('processing ISO 14443-4 tag', this.card);
+		this.logger.debug('processing ISO 14443-4 tag', this.card);
 
 		if (!this.aid) {
 			this.emit('error', new Error('Cannot process ISO 14443-4 tag because AID was not set.'));
@@ -770,7 +778,7 @@ class Reader extends EventEmitter {
 
 			if (response.length < 2) {
 
-				const err = new Error(`Invalid response length ${response.length}. Expected minimal length was 2 bytes.`);
+				const err = new Error(`Invalid response length ${response.length}. Expected minimal length is 2 bytes.`);
 				this.emit('error', err);
 
 				return;
@@ -791,7 +799,7 @@ class Reader extends EventEmitter {
 			// strip out the status code
 			const data = response.slice(0, -2);
 
-			this.logger.info('Data cropped', data);
+			this.logger.debug('Data cropped', data);
 
 			this.emit('card', {
 				...this.card,
@@ -812,6 +820,10 @@ class Reader extends EventEmitter {
 
 		this.reader.close();
 
+	}
+
+	toString() {
+		return this.name;
 	}
 
 }

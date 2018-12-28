@@ -48,7 +48,7 @@ class ACR122Reader extends Reader {
 
 			response = await this.control(packet, 2);
 
-			this.logger.info('response received', response);
+			this.logger.debug('response received', response);
 
 			// Red OFF Green OFF  0x00
 			// Red ON  Green OFF  0x01
@@ -130,7 +130,7 @@ class ACR122Reader extends Reader {
 
 			response = await this.control(packet, 2);
 
-			this.logger.info('response received', response);
+			this.logger.debug('response received', response);
 
 			// Red OFF Green OFF  0x00
 			// Red ON  Green OFF  0x01
@@ -174,7 +174,7 @@ class ACR122Reader extends Reader {
 
 			response = await this.control(packet, 2);
 
-			this.logger.info('response received', response);
+			this.logger.debug('response received', response);
 
 
 		} catch (err) {
@@ -213,7 +213,7 @@ class ACR122Reader extends Reader {
 
 			response = await this.control(packet, 1);
 
-			this.logger.info('response received', response);
+			this.logger.debug('response received', response);
 
 
 		} catch (err) {
