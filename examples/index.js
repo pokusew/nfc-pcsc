@@ -36,9 +36,21 @@ nfc.on('reader', async reader => {
 
 	readers.push(reader);
 
-	// needed for reading tags emulated with Android HCE AID
-	// see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
+	// enable when you want to auto-process ISO 14443-4 tags (standard=TAG_ISO_14443_4)
+	// when an ISO 14443-4 is detected, SELECT FILE command with the AID is issued
+	// the response is available as card.data in the card event
+	// you can set reader.aid to:
+	// 1. a HEX string (which will be parsed automatically to Buffer)
 	reader.aid = 'F222222222';
+	// 2. an instance of Buffer containing the AID bytes
+	// reader.aid = Buffer.from('F222222222', 'hex');
+	// 3. a function which must return an instance of a Buffer when invoked with card object (containing standard and atr)
+	//    the function may generate AIDs dynamically based on the detected card
+	// reader.aid = ({ standard, atr }) => {
+	//
+	// 	return Buffer.from('F222222222', 'hex');
+	//
+	// };
 
 	reader.on('card', async card => {
 

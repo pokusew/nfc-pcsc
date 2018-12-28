@@ -38,7 +38,6 @@ class Reader extends EventEmitter {
 
 	autoProcessing = true;
 	_aid = null;
-	_parsedAid = null;
 
 	keyStorage = {
 		'0': null,
@@ -67,18 +66,6 @@ class Reader extends EventEmitter {
 
 	}
 
-	static parseAid(str) {
-
-		const result = [];
-
-		for (let i = 0; i < str.length; i += 2) {
-			result.push(parseInt(str.substr(i, 2), 16));
-		}
-
-		return result;
-
-	}
-
 	static selectStandardByAtr(atr) {
 
 		// TODO: better detecting card types
@@ -97,12 +84,16 @@ class Reader extends EventEmitter {
 
 	set aid(value) {
 
-		this.logger.info('Setting AID to', value);
-		this._aid = value;
+		if (typeof value === 'function' || Buffer.isBuffer(value)) {
+			this._aid = value;
+			return;
+		}
 
-		const parsedAid = Reader.parseAid(value);
-		this.logger.info('AID parsed', parsedAid);
-		this._parsedAid = parsedAid;
+		if (typeof value !== 'string') {
+			throw new Error(`AID must be a HEX string or an instance of Buffer or a function.`);
+		}
+
+		this._aid = Buffer.from(value, 'hex');
 
 	}
 
@@ -350,10 +341,21 @@ class Reader extends EventEmitter {
 			throw new LoadAuthenticationKeyError('invalid_key_number');
 		}
 
-		const keyData = Reader.parseAid(key);
+		if (!Buffer.isBuffer(key) && !Array.isArray(key)) {
 
-		if (keyData.length !== 6) {
-			throw new LoadAuthenticationKeyError('invalid_key');
+			if (typeof key !== 'string') {
+				throw new LoadAuthenticationKeyError(
+					'invalid_key',
+					'Key must an instance of Buffer or an array of bytes or a string.',
+				);
+			}
+
+			key = Buffer.from(key, 'hex');
+
+		}
+
+		if (key.length !== 6) {
+			throw new LoadAuthenticationKeyError('invalid_key', 'Key length must be 6 bytes.');
 		}
 
 		// CMD: Load Authentication Keys
@@ -362,9 +364,8 @@ class Reader extends EventEmitter {
 			0x82, // INS
 			0x00, // P1: Key Structure (0x00 = Key is loaded into the reader volatile memory.)
 			keyNumber, // P2: Key Number (00h ~ 01h = Key Location. The keys will disappear once the reader is disconnected from the PC)
-			0x06, // Lc
-			// Data In: Key (6 bytes)
-			...keyData,
+			key.length, // Lc: Length of the key (6)
+			...key, // Data In: Key (6 bytes)
 		]);
 
 		let response = null;
@@ -731,29 +732,29 @@ class Reader extends EventEmitter {
 
 		this.logger.info('processing ISO 14443-4 tag', this.card);
 
-		if (!this._parsedAid) {
+		if (!this.aid) {
+			this.emit('error', new Error('Cannot process ISO 14443-4 tag because AID was not set.'));
+			return;
+		}
 
-			const err = new Error('Cannot process ISO 14443-4 tag because AID was not set.');
-			this.emit('error', err);
+		const aid = typeof this.aid === 'function' ? this.aid(this.card) : this.aid;
 
+		if (!Buffer.isBuffer(aid)) {
+			this.emit('error', new Error('AID must be an instance of Buffer.'));
 			return;
 		}
 
 		// APDU CMD: SELECT FILE
 		// see http://cardwerk.com/smart-card-standard-iso7816-4-section-6-basic-interindustry-commands/#chap6_11_3
-		const aid = Buffer.from(this._parsedAid);
-		const packetHeader = Buffer.from([
+		const packet = Buffer.from([
 			0x00, // Class
 			0xa4, // INS
 			0x04, // P1
 			0x00, // P2
 			aid.length, // Lc
-		]);
-		const packetFooter = Buffer.from([
+			...aid, // AID
 			0x00, // Le
 		]);
-
-		const packet = Buffer.concat([packetHeader, aid, packetFooter]);
 
 		try {
 
@@ -761,7 +762,7 @@ class Reader extends EventEmitter {
 
 			if (response.length === 2 && response.readUInt16BE(0) === 0x6a82) {
 
-				const err = new Error(`Not found response. Tag not compatible with AID ${this._aid}.`);
+				const err = new Error(`Not found response. Tag not compatible with AID ${aid.toString('hex').toUpperCase()}.`);
 				this.emit('error', err);
 
 				return;

@@ -117,10 +117,11 @@ nfc.on('reader', reader => {
 
 	console.log(`${reader.reader.name}  device attached`);
 
-	// needed for reading tags emulated with Android HCE
-	// custom AID, change according to your Android for tag emulation
-	// see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
-	reader.aid = 'F222222222';
+	// enable when you want to auto-process ISO 14443-4 tags (standard=TAG_ISO_14443_4)
+    // when an ISO 14443-4 is detected, SELECT FILE command with the AID is issued
+    // the response is available as card.data in the card event
+    // see examples/basic.js line 17 for more info
+	// reader.aid = 'F222222222';
 
 	reader.on('card', card => {
 
@@ -174,11 +175,6 @@ nfc.on('reader', reader => {
 	reader.autoProcessing = false;
 
 	console.log(`${reader.reader.name}  device attached`);
-
-	// needed for reading tags emulated with Android HCE
-	// custom AID, change according to your Android for tag emulation
-	// see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
-	// reader.aid = 'F222222222';
 
 	reader.on('card', card => {
 
