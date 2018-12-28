@@ -372,6 +372,15 @@ No worry, just needs a proper configuration, see [explanation and instructions h
 
 No worry, you have probably modified a sector trailer instead of a data block, see [explanation and instructions here](https://github.com/pokusew/nfc-pcsc/issues/16#issuecomment-304989178).
 
+### Reading data from a type 4 tags inside a [Elsys.se](https://www.elsys.se/en/) sensors
+
+According to [@martijnthe](https://github.com/martijnthe)'s findings, it seems to be necessary to change the CLASS of READ BINARY APDU command
+from the default value of `0xFF` to `0x00` in order to make a successful read.
+
+If you experience the same problems, you can try setting the fourth argument (readClass) of the
+[`reader.read(blockNumber, length, blockSize, packetSize, readClass)`](https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L493) method to value `0x00`.
+
+Relevant conversation: https://github.com/pokusew/nfc-pcsc/pull/55#issuecomment-450120232
 
 ## License
 
