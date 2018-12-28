@@ -1,7 +1,7 @@
 "use strict";
 
 // #############
-// Basic usage
+// Example: Basic usage
 // - see "Basic usage" section in README for an explanation
 // #############
 

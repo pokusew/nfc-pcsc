@@ -96,6 +96,8 @@ When a NFC tag (card) is attached to the reader, the following is done:
 
 > ### Running examples locally
 > If you want see it in action, clone this repository, install dependencies with npm and run `npm run example`.
+> Of course, instead of npm you can Yarn if you want.
+> See scripts section of [package.json](/package.json) for all available examples run commands.
 > ```bash
 > git clone https://github.com/pokusew/nfc-pcsc.git
 > npm install
@@ -260,10 +262,12 @@ reader.on('card', async card => {
 
 📦📦📦 You can find more examples in [examples folder](/examples), including:
 
-* [index.js](/examples/index.js) – detecting, authenticating, reading and writing cards (including instructions for Mifare Classic)
-* [led.js](/examples/led.js) – controlling LED and buzzer of ACR122U look
-* [desfire.js](/examples/desfire.js) – accessing and authenticating Mifare DESFire cards
-* [uid-logger.js](/examples/uid-logger.js)
+* [read-write.js](/examples/read-write.js) – detecting, reading and writing cards
+* [mifare-classic.js](/examples/mifare-classic.js) – authenticating, reading and writing Mifare Classic cards
+* [mifare-desfire.js](/examples/mifare-desfire.js) – authenticating and accessing data on Mifare DESFire cards
+* [basic.js](/examples/basic.js) – reader events explanation
+* [led.js](/examples/led.js) – controlling LED and buzzer of ACR122U reader
+* [uid-logger.js](/examples/uid-logger.js) – logs uid when a card is detected
 
 Feel free to open pull request, if you have any useful example, that you'd like to add. 
 

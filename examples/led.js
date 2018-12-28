@@ -1,45 +1,29 @@
 "use strict";
 
 // #############
-// ACR122U example controlling LED and buzzer
-// - custom buzzer output
-// - repeated beeping on unsuccessful read/write operation
+// Example: Controlling LED and buzzer on ACR122U
+// - what is covered:
+//   - custom led blinks
+//   - custom buzzer output
+//   - repeated beeping on unsuccessful read/write operation
+// - TODO:
+//   - document how to allow escape commands (direct communication without card)
 // #############
 
 import { NFC, TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B, CONNECT_MODE_DIRECT } from '../src/index';
-import pretty from './pretty';
+import pretty from './pretty-logger';
 
 
-// minilogger for debugging
+const nfc = new NFC(pretty); // const nfc = new NFC(pretty); // optionally you can pass logger to see internal debug logs
 
-function log() {
-	console.log(...arguments);
-}
-
-const minilogger = {
-	log: log,
-	debug: log,
-	info: log,
-	warn: log,
-	error: log,
-};
-
-const nfc = new NFC(minilogger); // const nfc = new NFC(minilogger); // optionally you can pass logger to see internal debug logs
-
-let readers = [];
 
 nfc.on('reader', async reader => {
 
 	pretty.info(`device attached`, { reader: reader.name });
 
-	readers.push(reader);
-
-
 	// needed for reading tags emulated with Android HCE AID
 	// see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
 	reader.aid = 'F222222222';
-
-	console.log();
 
 	try {
 		await reader.connect(CONNECT_MODE_DIRECT);
@@ -106,14 +90,14 @@ nfc.on('reader', async reader => {
 
 			const data = await reader.read(4, 16);
 
-			pretty.info(`data read`, { reader: reader.name, card, data });
+			pretty.info(`data read`, reader, data);
 
-			const payload = data.readInt16BE();
+			const payload = data.readInt16BE(0);
 
 			pretty.info(`data converted`, payload);
 
 		} catch (err) {
-			pretty.error(`error when reading data`, { reader: reader.name, card, err });
+			pretty.error(`error when reading data`, reader, err);
 			await reader.led(0b01011101, [0x02, 0x01, 0x05, 0x01]);
 			return;
 		}
@@ -128,51 +112,39 @@ nfc.on('reader', async reader => {
 			// ! Caution! data.length must be divisible by blockSize
 
 			const data = Buffer.allocUnsafe(16);
-			data.writeInt16BE(800);
+			data.writeInt16BE(800, 0);
 
 			await reader.write(4, data);
 
-			pretty.info(`data written`, { reader: reader.name, card });
+			pretty.info(`data written`, reader, data);
 
 		} catch (err) {
-			pretty.error(`error when writing data`, { reader: reader.name, card, err });
+			pretty.error(`error when writing data`, reader, err);
 			await reader.led(0b01011101, [0x02, 0x01, 0x05, 0x01]);
 			return;
 		}
 
 
 		try {
-
 			await reader.led(0b00101110, [0x01, 0x00, 0x01, 0x01]);
-
 		} catch (err) {
-			pretty.error(`error when writing led`);
+			pretty.error(`error when writing led`, err);
 		}
 
 
 	});
 
 	reader.on('error', err => {
-
-		pretty.error(`an error occurred`, { reader: reader.name, err });
+		pretty.error(`an error occurred`, reader, err);
 
 	});
 
 	reader.on('end', () => {
-
-		pretty.info(`device removed`, { reader: reader.name });
-
-		delete readers[readers.indexOf(reader)];
-
-		console.log(readers);
-
+		pretty.info(`device removed`, reader);
 	});
-
 
 });
 
 nfc.on('error', err => {
-
 	pretty.error(`an error occurred`, err);
-
 });

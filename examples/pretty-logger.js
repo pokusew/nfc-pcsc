@@ -1,5 +1,8 @@
 "use strict";
 
+// pretty-logger for debugging
+// uses great winston logger library, visit https://github.com/winstonjs/winston
+
 import util from 'util';
 import chalk from 'chalk';
 import winston from 'winston';
@@ -18,16 +21,35 @@ const colors = {
 
 winston.addColors(colors);
 
+// we could use instanceof but to avoid import we simply check obj structure
+const isReader = obj => typeof obj === 'object' && obj.reader && obj.name;
+
 const printf = winston.format.printf(({ timestamp, level, message, [SPLAT]: splat }) => {
 
 	let splatString = '';
 
+	let reader = '';
+
 	if (splat) {
-		splatString = ' ' + (splat.length > 1 ? util.inspect(splat, { colors: true }) : util.inspect(splat[0], { colors: true }));
+
+		let readerObj = splat.find(isReader);
+
+		if (readerObj) {
+			reader = chalk.cyan(readerObj.name) + ' ';
+			splat = splat.filter(obj => !isReader(obj));
+		}
+
+		if (splat.length > 1) {
+			splatString = ' ' + util.inspect(splat, { colors: true });
+		}
+		else if (splat.length > 0) {
+			splatString = ' ' + util.inspect(splat[0], { colors: true });
+		}
+
 	}
 
 	// see https://stackoverflow.com/questions/10729276/how-can-i-get-the-full-object-in-node-jss-console-log-rather-than-object
-	return `${timestamp ? timestamp + ' – ' : ''}${level}: ${message}${splatString}`;
+	return `${timestamp ? timestamp + ' – ' : ''}${reader}${level}: ${message}${splatString}`;
 
 });
 

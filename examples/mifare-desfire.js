@@ -1,11 +1,18 @@
 "use strict";
 
 // #############
-// Example accessing and authenticating Mifare DESFire cards
+// Example: Mifare DESFire
+// - what is covered:
+//   - 3DES authentication
+//   - reading data files
+// - known issue:
+//   - [mac0S Sierra and greater] when an error occurs during the authentication process,
+//     the NFC must be reinitialized or the reader reconnected
+//     in order to allow subsequent successful operations (TODO: add appropriate links, fix and test)
 // #############
 
 import { NFC } from '../src/index';
-import pretty from './pretty';
+import pretty from './pretty-logger';
 import crypto from 'crypto';
 
 
@@ -14,7 +21,7 @@ const desfire = {
 	key: '00000000000000000000000000000000',
 	appId: [0x00, 0x00, 0x00],
 	keyId: [0x00],
-	read: {
+	read: { // supply location of an existing data
 		fileId: [0x02],
 		offset: [0x00, 0x00, 0x00],
 		length: [14, 0x00, 0x00],
@@ -43,13 +50,9 @@ function encrypt(key, data, iv = Buffer.alloc(8).fill(0)) {
 
 const nfc = new NFC();
 
-let readers = [];
-
 nfc.on('reader', async reader => {
 
-	pretty.info(`device attached`, { reader: reader.name });
-
-	readers.push(reader);
+	pretty.info(`device attached`, reader);
 
 	// we have to handle Mifare DESFIRE
 	reader.autoProcessing = false;
@@ -73,7 +76,7 @@ nfc.on('reader', async reader => {
 
 	reader.on('card', async card => {
 
-		pretty.info(`card detected`, { reader: reader.name, card });
+		pretty.info(`card detected`, reader, card);
 
 		const selectApplication = async () => {
 
@@ -176,36 +179,23 @@ nfc.on('reader', async reader => {
 
 
 		} catch (err) {
-
-			pretty.error(`error occurred during processing steps`, { reader: reader.name });
-			console.log(err);
-
+			pretty.error(`error occurred during processing steps`, reader, err);
 		}
 
 
 	});
 
 	reader.on('error', err => {
-
-		pretty.error(`an error occurred`, { reader: reader.name, err });
-
+		pretty.error(`an error occurred`, reader, err);
 	});
 
 	reader.on('end', () => {
-
-		pretty.info(`device removed`, { reader: reader.name });
-
-		delete readers[readers.indexOf(reader)];
-
-		console.log(readers);
-
+		pretty.info(`device removed`, reader);
 	});
 
 
 });
 
 nfc.on('error', err => {
-
 	pretty.error(`an error occurred`, err);
-
 });

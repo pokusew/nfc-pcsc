@@ -17,11 +17,6 @@ nfc.on('reader', reader => {
 
 	console.log(`${reader.reader.name}  device attached`);
 
-	// needed for reading tags emulated with Android HCE
-	// custom AID, change according to your Android for tag emulation
-	// see https://developer.android.com/guide/topics/connectivity/nfc/hce.html
-	// reader.aid = 'F222222222';
-
 	reader.on('card', card => {
 
 		// card is object containing following data
@@ -32,7 +27,7 @@ nfc.on('reader', reader => {
 		console.log(`${reader.reader.name}  card inserted`, card);
 
 		// you can use reader.transmit to send commands and retrieve data
-		// see https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L291
+		// see https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L288
 
 	});
 
