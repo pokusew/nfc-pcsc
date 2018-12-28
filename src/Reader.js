@@ -47,7 +47,13 @@ class Reader extends EventEmitter {
 
 	pendingLoadAuthenticationKey = {};
 
-	// TODO: better way?
+	/**
+	 * Reverses a copy of a given buffer
+	 * Does NOT mutate the given buffer, returns a reversed COPY
+	 * For mutating reverse use native .reverse() method on a buffer instance
+	 * @param src {Buffer} a Buffer instance
+	 * @returns {Buffer}
+	 */
 	static reverseBuffer(src) {
 
 		const buffer = Buffer.allocUnsafe(src.length);
