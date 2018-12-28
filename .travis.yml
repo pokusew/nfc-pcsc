@@ -2,23 +2,24 @@
 # https://docs.travis-ci.com/
 
 dist: trusty
-sudo: false
 
 language: node_js
 
 node_js:
-  - node
-  - 8
+  - "11.*"
+  - "10.*"
+  - "9.*"
+  - "8.*"
 
 cache:
-  npm: true
+  yarn: true
 
 install:
-  - npm install --only=dev
+  - yarn
 
 before_script:
-  - npm run build
+  - yarn build
 
 script:
   - node test/_node-version-test.js
-  - npm run test
+  - yarn test
