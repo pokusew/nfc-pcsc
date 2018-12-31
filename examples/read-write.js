@@ -3,10 +3,10 @@
 // #############
 // Example: Reading and writing data
 // - should work well with any compatible PC/SC card reader
-// - tested with Mifare Ultralight cards but should work with many others (e.g. NTAG)
+// - tested with MIFARE Ultralight cards but should work with many others (e.g. NTAG)
 // - what is covered:
 //   - example reading and writing data on from/to card
-// - NOTE! for reading and writing data from/to Mifare Classic please see examples/mifare-classic.js which explains Mifare Classic specifics
+// - NOTE! for reading and writing data from/to MIFARE Classic please see examples/mifare-classic.js which explains MIFARE Classic specifics
 // #############
 
 import { NFC, TAG_ISO_14443_3, TAG_ISO_14443_4, KEY_TYPE_A, KEY_TYPE_B } from '../src/index';
@@ -46,7 +46,7 @@ nfc.on('reader', async reader => {
 			// reader.read(blockNumber, length, blockSize = 4, packetSize = 16)
 			// - blockNumber - memory block number where to start reading
 			// - length - how many bytes to read
-			// - blockSize - 4 for Mifare Ultralight, 16 for Mifare Classic
+			// - blockSize - 4 for MIFARE Ultralight, 16 for MIFARE Classic
 			// ! Caution! length must be divisible by blockSize (we have to read the whole block(s))
 
 			const data = await reader.read(4, 4);
@@ -69,7 +69,7 @@ nfc.on('reader', async reader => {
 			// reader.write(blockNumber, data, blockSize = 4, packetSize = 16)
 			// - blockNumber - memory block number where to start writing
 			// - data - what to write
-			// - blockSize - 4 for Mifare Ultralight, 16 for Mifare Classic
+			// - blockSize - 4 for MIFARE Ultralight, 16 for MIFARE Classic
 			// ! Caution! data.length must be divisible by blockSize (we have to write the whole block(s))
 
 			const data = Buffer.allocUnsafe(4).fill(0);

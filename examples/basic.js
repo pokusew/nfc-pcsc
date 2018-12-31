@@ -33,7 +33,7 @@ nfc.on('reader', reader => {
 	reader.on('card', card => {
 
 		// card is object containing following data
-		// [always] String type: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
+		// [always] String type: TAG_ISO_14443_3 (standard nfc tags like MIFARE) or TAG_ISO_14443_4 (Android HCE and others)
 		// [always] String standard: same as type
 		// [only TAG_ISO_14443_3] String uid: tag uid
 		// [only TAG_ISO_14443_4] Buffer data: raw data from select APDU response

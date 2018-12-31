@@ -2,9 +2,14 @@
   <dictionary name="pokusew">
     <words>
       <w>apdu</w>
+      <w>frontends</w>
       <w>mifare</w>
       <w>ndef</w>
+      <w>ntag</w>
+      <w>pcsc</w>
+      <w>pcsclite</w>
       <w>picc</w>
+      <w>pokusew</w>
       <w>prettyjson</w>
       <w>transpiled</w>
     </words>

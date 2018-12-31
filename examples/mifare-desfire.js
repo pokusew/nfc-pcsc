@@ -1,7 +1,7 @@
 "use strict";
 
 // #############
-// Example: Mifare DESFire
+// Example: MIFARE DESFire
 // - what is covered:
 //   - 3DES authentication
 //   - reading data files
@@ -54,7 +54,7 @@ nfc.on('reader', async reader => {
 
 	pretty.info(`device attached`, reader);
 
-	// we have to handle Mifare DESFIRE
+	// we have to handle MIFARE DESFire
 	reader.autoProcessing = false;
 
 	// just handy shortcut to send data

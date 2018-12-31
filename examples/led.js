@@ -36,7 +36,7 @@ nfc.on('reader', async reader => {
 	reader.on('card', async card => {
 
 
-		// standard nfc tags like Mifare
+		// standard nfc tags like MIFARE
 		if (card.type === TAG_ISO_14443_3) {
 			// const uid = card.uid;
 			pretty.info(`card detected`, { reader: reader.name, card });
@@ -52,7 +52,7 @@ nfc.on('reader', async reader => {
 			pretty.info(`card detected`, { reader: reader.name, card });
 		}
 
-		// Notice: reading data from Mifare Classic cards (e.g. Mifare 1K) requires,
+		// Notice: reading data from MIFARE Classic cards (e.g. MIFARE 1K) requires,
 		// that the data block must be authenticated first
 		// don't forget to fill your keys and types
 		// reader.authenticate(blockNumber, keyType, key, obsolete = false)

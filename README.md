@@ -43,7 +43,7 @@ This library uses pcsclite native bindings [pokusew/node-pcsclite](https://githu
 - [Frequent errors](#frequent-errors)
   - [TypeError: NFC is not a constructor](#typeerror-nfc-is-not-a-constructor)
   - [Transaction failed error when using `CONNECT_MODE_DIRECT`](#transaction-failed-error-when-using-connect_mode_direct)
-  - [Mifare Classic: Authentication Error after Multiple Writes](#mifare-classic-authentication-error-after-multiple-writes)
+  - [MIFARE Classic: Authentication Error after Multiple Writes](#mifare-classic-authentication-error-after-multiple-writes)
   - [Reading data from a type 4 tags inside a Elsys.se sensors](#reading-data-from-a-type-4-tags-inside-a-elsysse-sensors)
 - [License](#license)
 
@@ -81,7 +81,7 @@ When a NFC tag (card) is attached to the reader, the following is done:
 	
 	- when `autoProcessing` is true (default value) it will handle card by the standard:  
 		
-		`TAG_ISO_14443_3` *(Mifare Ultralight, 1K ...)*: sends GET_DATA command to retrieve **card UID**  
+		`TAG_ISO_14443_3` *(MIFARE Ultralight, 1K ...)*: sends GET_DATA command to retrieve **card UID**  
 		`TAG_ISO_14443_4` *(e.g.: Andorid HCE)*: sends SELECT_APDU command to retrive data by file
 		
 		**then `card` event is fired, for which you can listen and then you can read or write data on the card**  
@@ -130,7 +130,7 @@ nfc.on('reader', reader => {
 	reader.on('card', card => {
 
 		// card is object containing following data
-		// [always] String type: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
+		// [always] String type: TAG_ISO_14443_3 (standard nfc tags like MIFARE) or TAG_ISO_14443_4 (Android HCE and others)
 		// [always] String standard: same as type
 		// [only TAG_ISO_14443_3] String uid: tag uid
 		// [only TAG_ISO_14443_4] Buffer data: raw data from select APDU response
@@ -183,7 +183,7 @@ nfc.on('reader', reader => {
 	reader.on('card', card => {
 
 		// card is object containing following data
-		// String standard: TAG_ISO_14443_3 (standard nfc tags like Mifare) or TAG_ISO_14443_4 (Android HCE and others)
+		// String standard: TAG_ISO_14443_3 (standard nfc tags like MIFARE Ultralight) or TAG_ISO_14443_4 (Android HCE and others)
 		// String type: same as standard
 		// Buffer atr
 
@@ -216,11 +216,11 @@ nfc.on('error', err => {
 
 ## Reading and writing data
 
-You can read from and write to numerous NFC tags including Mifare Ultralight (tested), Mifare Classic, Mifare DESFire, ...
+You can read from and write to numerous NFC tags including MIFARE Ultralight (tested), MIFARE Classic, MIFARE DESFire, ...
 
 > Actually, you can even read/write any possible non-standard NFC tag and card, via sending APDU commands according card's technical documentation via `reader.transmit`.
 
-Here is **a simple example** showing reading and writing data to simple card **without authenticating** (e.g. Mifare Ultralight):  
+Here is **a simple example** showing reading and writing data to simple card **without authenticating** (e.g. MIFARE Ultralight):  
 _See [Basic usage](#basic-usage) how to set up reader or [look here for full code](/examples/from-readme-3.js)_
 
 ```javascript
@@ -264,9 +264,9 @@ reader.on('card', async card => {
 
 📦📦📦 You can find more examples in [examples folder](/examples), including:
 
-* [read-write.js](/examples/read-write.js) – detecting, reading and writing cards
-* [mifare-classic.js](/examples/mifare-classic.js) – authenticating, reading and writing Mifare Classic cards
-* [mifare-desfire.js](/examples/mifare-desfire.js) – authenticating and accessing data on Mifare DESFire cards
+* [read-write.js](/examples/read-write.js) – detecting, reading and writing cards standard ISO/IEC 14443-3 cards (NTAG, MIFARE Ultralight, ...)
+* [mifare-classic.js](/examples/mifare-classic.js) – authenticating, reading and writing MIFARE Classic cards
+* [mifare-desfire.js](/examples/mifare-desfire.js) – authenticating and accessing data on MIFARE DESFire cards
 * [basic.js](/examples/basic.js) – reader events explanation
 * [led.js](/examples/led.js) – controlling LED and buzzer of ACR122U reader
 * [uid-logger.js](/examples/uid-logger.js) – logs uid when a card is detected
@@ -370,7 +370,7 @@ It was removed for non-standard behaviour of ES6 modules in ES5 env (see [#12](h
 
 No worry, just needs a proper configuration, see [explanation and instructions here](https://github.com/pokusew/nfc-pcsc/issues/13#issuecomment-302482621).
 
-### Mifare Classic: Authentication Error after Multiple Writes
+### MIFARE Classic: Authentication Error after Multiple Writes
 
 No worry, you have probably modified a sector trailer instead of a data block, see [explanation and instructions here](https://github.com/pokusew/nfc-pcsc/issues/16#issuecomment-304989178).
 

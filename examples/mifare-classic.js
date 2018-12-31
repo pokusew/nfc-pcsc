@@ -1,7 +1,7 @@
 "use strict";
 
 // #############
-// Example: Mifare Classic
+// Example: MIFARE Classic
 // - should work well with any compatible PC/SC card reader
 // - what is covered:
 //   - authentication
@@ -13,12 +13,12 @@
 
 // ## Note about the card's data structure
 //
-// ### Mifare Classic EV1 1K
+// ### MIFARE Classic EV1 1K
 // – 1024 × 8 bit EEPROM memory
 // – 16 sectors of 4 blocks
 // – see https://www.nxp.com/docs/en/data-sheet/MF1S50YYX_V1.pdf
 //
-// ### Mifare Classic EV1 4K
+// ### MIFARE Classic EV1 4K
 // – 4096 × 8 bit EEPROM memory
 // – 32 sectors of 4 blocks and 8 sectors of 16 blocks
 // – see https://www.nxp.com/docs/en/data-sheet/MF1S70YYX_V1.pdf
@@ -62,7 +62,7 @@ nfc.on('reader', async reader => {
 	reader.on('card', async card => {
 
 
-		// Mifare Classic is ISO/IEC 14443-3 tag
+		// MIFARE Classic is ISO/IEC 14443-3 tag
 		// skip other standards
 		if (card.type !== TAG_ISO_14443_3) {
 			return;
@@ -70,7 +70,7 @@ nfc.on('reader', async reader => {
 
 		pretty.info(`card detected`, reader, card);
 
-		// Reading and writing data from/to Mifare Classic cards (e.g. Mifare 1K) requires,
+		// Reading and writing data from/to MIFARE Classic cards (e.g. MIFARE 1K) requires,
 		// that the accessed data blocks must be authenticated first
 		// Don't forget to fill YOUR keys and types! (default ones are stated below)
 		// reader.authenticate(blockNumber, keyType, key, obsolete = false)
@@ -106,14 +106,14 @@ nfc.on('reader', async reader => {
 			// reader.read(blockNumber, length, blockSize = 4, packetSize = 16)
 			// - blockNumber - memory block number where to start reading
 			// - length - how many bytes to read
-			// - blockSize - 4 for Mifare Ultralight, 16 for Mifare Classic
+			// - blockSize - 4 for MIFARE Ultralight, 16 for MIFARE Classic
 			// ! Caution! length must be divisible by blockSize
-			// ! Caution! Mifare Classic cards have sector trailers
+			// ! Caution! MIFARE Classic cards have sector trailers
 			//   containing access bits instead of data, each last block in sector is sector trailer
 			//   (e.g. block 3, 7, 11, 14)
 			//   see for more info https://github.com/pokusew/nfc-pcsc/issues/16#issuecomment-304989178
 
-			const data = await reader.read(4, 16, 16); // blockSize=16 must specified for Mifare Classic cards
+			const data = await reader.read(4, 16, 16); // blockSize=16 must specified for MIFARE Classic cards
 
 			pretty.info(`data read`, reader, data);
 
@@ -133,9 +133,9 @@ nfc.on('reader', async reader => {
 			// reader.write(blockNumber, data, blockSize = 4, packetSize = 16)
 			// - blockNumber - memory block number where to start writing
 			// - data - what to write
-			// - blockSize - 4 for Mifare Ultralight, 16 for Mifare Classic
+			// - blockSize - 4 for MIFARE Ultralight, 16 for MIFARE Classic
 			// ! Caution! data.length must be divisible by blockSize
-			// ! Caution! Mifare Classic cards have sector trailers
+			// ! Caution! MIFARE Classic cards have sector trailers
 			//   containing access bits instead of data, each last block in sector is sector trailer
 			//   (e.g. block 3, 7, 11, 14)
 			//   see for more info https://github.com/pokusew/nfc-pcsc/issues/16#issuecomment-304989178
@@ -145,7 +145,7 @@ nfc.on('reader', async reader => {
 			const randomNumber = Math.round(Math.random() * 1000);
 			data.writeInt16BE(randomNumber, 0);
 
-			await reader.write(4, data, 16); // blockSize=16 must specified for Mifare Classic cards
+			await reader.write(4, data, 16); // blockSize=16 must specified for MIFARE Classic cards
 
 			pretty.info(`data written`, reader, data);
 
