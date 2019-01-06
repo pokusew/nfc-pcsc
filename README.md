@@ -102,6 +102,7 @@ When a NFC tag (card) is attached to the reader, the following is done:
 > See scripts section of [package.json](/package.json) for all available examples run commands.
 > ```bash
 > git clone https://github.com/pokusew/nfc-pcsc.git
+> cd nfc-pcsc
 > npm install
 > npm run example
 > ```
