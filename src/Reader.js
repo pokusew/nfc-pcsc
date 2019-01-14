@@ -302,6 +302,8 @@ class Reader extends EventEmitter {
 					return reject(error);
 				}
 
+				this.logger.debug('transmit response received', response, response && response.length);
+
 				return resolve(response);
 
 			});
@@ -326,6 +328,8 @@ class Reader extends EventEmitter {
 					const error = new ControlError(FAILURE, 'An error occurred while transmitting control.', err);
 					return reject(error);
 				}
+
+				this.logger.debug('control response received', response, response && response.length);
 
 				return resolve(response);
 
@@ -373,8 +377,6 @@ class Reader extends EventEmitter {
 		try {
 
 			response = await this.transmit(packet, 2);
-
-			this.logger.debug('response received', response);
 
 
 		} catch (err) {
@@ -470,9 +472,6 @@ class Reader extends EventEmitter {
 
 			response = await this.transmit(packet, 2);
 
-			this.logger.debug('response received', response);
-
-
 		} catch (err) {
 
 			throw new AuthenticationError(null, null, err);
@@ -538,8 +537,6 @@ class Reader extends EventEmitter {
 		try {
 
 			response = await this.transmit(packet, length + 2);
-
-			this.logger.debug('response received', response);
 
 		} catch (err) {
 
@@ -622,9 +619,6 @@ class Reader extends EventEmitter {
 		try {
 
 			response = await this.transmit(packet, 2);
-
-			this.logger.debug('response received', response);
-
 
 		} catch (err) {
 
@@ -817,9 +811,7 @@ class Reader extends EventEmitter {
 	}
 
 	close() {
-
 		this.reader.close();
-
 	}
 
 	toString() {
