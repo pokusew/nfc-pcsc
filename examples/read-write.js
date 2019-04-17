@@ -40,7 +40,7 @@ nfc.on('reader', async reader => {
 		pretty.info(`card detected`, reader, card);
 
 		// example reading 4 bytes assuming containing 16bit integer
-		// !!! note that we don't need 4 bytes – 16bit integer takes just 2 bytes !!!
+		// !!! note that we don't need 4 bytes - 16bit integer takes just 2 bytes !!!
 		try {
 
 			// reader.read(blockNumber, length, blockSize = 4, packetSize = 16)
@@ -55,7 +55,7 @@ nfc.on('reader', async reader => {
 
 			const payload = data.readInt16BE(0);
 
-			pretty.info(`data converted`, payload);
+			pretty.info(`data converted`, reader, payload);
 
 		} catch (err) {
 			pretty.error(`error when reading data`, reader, err);
@@ -63,7 +63,7 @@ nfc.on('reader', async reader => {
 
 
 		// example write 4 bytes containing 16bit integer
-		// !!! note that we don't need 16 bytes – 16bit integer takes just 2 bytes !!!
+		// !!! note that we don't need 16 bytes - 16bit integer takes just 2 bytes !!!
 		try {
 
 			// reader.write(blockNumber, data, blockSize = 4, packetSize = 16)
@@ -78,7 +78,7 @@ nfc.on('reader', async reader => {
 
 			await reader.write(4, data);
 
-			pretty.info(`data written`, reader, data);
+			pretty.info(`data written`, reader, randomNumber, data);
 
 		} catch (err) {
 			pretty.error(`error when writing data`, reader, err);
