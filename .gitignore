@@ -1,21 +1,35 @@
-# node, npm
-node_modules/
+### GENERAL
 
 # Windows
 Thumbs.db
 Desktop.ini
 
-# Mac
+# macOS
 .DS_Store
 .supported
 
+# common code editors
+.atom/
+.vscode/
+
 # NetBeans
-/nbproject/private/
+nbproject/private/
 
-# WebStorm
-**/.idea/workspace.xml
-**/.idea/tasks.xml
+# JetBrains IDEs
+# see https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+captures
 
-dist/
-
+# common files
 *.log
+
+
+### PROJECT
+
+# node, npm
+node_modules/
+
+# built source (pushed into npm)
+/dist/

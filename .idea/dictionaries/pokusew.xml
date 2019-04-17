@@ -3,8 +3,10 @@
     <words>
       <w>apdu</w>
       <w>frontends</w>
+      <w>gitignore</w>
       <w>mifare</w>
       <w>ndef</w>
+      <w>npmignore</w>
       <w>ntag</w>
       <w>pcsc</w>
       <w>pcsclite</w>
