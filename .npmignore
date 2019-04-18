@@ -1,1 +1,34 @@
-!/dist/
+# Keeping files out of your package
+# docs: https://docs.npmjs.com/misc/developers#keeping-files-out-of-your-package
+# note: when both .npmignore and .gitignore are present, only .npmignore has effect
+# related: https://stackoverflow.com/questions/24942161/does-npm-ignore-files-listed-in-gitignore
+
+### GENERAL
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.supported
+
+# common code editors
+.atom/
+.vscode/
+
+# NetBeans
+nbproject/private/
+
+# JetBrains IDEs
+# no need to ship metadata
+.idea/
+
+# common files
+*.log
+
+
+### PROJECT
+
+# node, npm
+node_modules/
