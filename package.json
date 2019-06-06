@@ -47,19 +47,19 @@
     "example-uid-logger": "node -r @babel/register examples/uid-logger.js",
     "example-without-auto": "node -r @babel/register examples/without-auto.js",
     "prepack": "yarn build && yarn test",
-    "test": "cross-env NODE_ENV=test ava test --verbose"
+    "test": "cross-env NODE_ENV=test ava test/tests.js --verbose"
   },
   "dependencies": {
     "@pokusew/pcsclite": "^0.5.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.4.3",
-    "@babel/core": "^7.4.3",
-    "@babel/plugin-proposal-class-properties": "^7.4.0",
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
     "@babel/plugin-syntax-object-rest-spread": "^7.2.0",
-    "@babel/plugin-transform-modules-commonjs": "^7.4.3",
-    "@babel/register": "^7.4.0",
-    "ava": "^1.4.1",
+    "@babel/plugin-transform-modules-commonjs": "^7.4.4",
+    "@babel/register": "^7.4.4",
+    "ava": "^2.0.0",
     "chalk": "^2.4.2",
     "cross-env": "^5.2.0",
     "mock-require": "^3.0.3",
