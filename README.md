@@ -19,6 +19,7 @@ This library uses pcsclite native bindings [pokusew/node-pcsclite](https://githu
 
 <!-- _**Psst!** You are browsing the documentation for the master branch, [look here](https://github.com/pokusew/nfc-pcsc/tree/v0.6.0) to see the usage of latest published version._ -->
 
+
 ## Content
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -40,6 +41,7 @@ This library uses pcsclite native bindings [pokusew/node-pcsclite](https://githu
   - [Which Node.js versions are supported?](#which-nodejs-versions-are-supported)
   - [How do I require/import this library?](#how-do-i-requireimport-this-library)
   - [Can I read a NDEF formatted tag?](#can-i-read-a-ndef-formatted-tag)
+  - [Can I use this library in my React Native app?](#can-i-use-this-library-in-my-react-native-app)
 - [Frequent errors](#frequent-errors)
   - [TypeError: NFC is not a constructor](#typeerror-nfc-is-not-a-constructor)
   - [Transaction failed error when using `CONNECT_MODE_DIRECT`](#transaction-failed-error-when-using-connect_mode_direct)
@@ -52,21 +54,47 @@ This library uses pcsclite native bindings [pokusew/node-pcsclite](https://githu
 
 ## Installation
 
-> **Requirements:** **Node.js 8+** (see [this FAQ](#which-nodejs-versions-are-supported) for more info)
+**Requirements:** **at least Node.js 8 or newer** (see [this FAQ](#which-nodejs-versions-are-supported) for more info)
 
-> **Note:** This library uses system PC/SC API. On **Windows and macOS** it works out of the box, but on Linux you have to do some steps as described [here](https://github.com/pokusew/node-pcsclite#installation)
+**Note:** This library can be used only in **Node.js** environments on Linux/UNIX, macOS and Windows. Read why [here]((#can-i-use-this-library-in-my-react-native-app)).
 
-Using npm:
+1. **Node Native Modules build tools**
 
-```bash
-npm install nfc-pcsc --save
-```
+    Because this library (via [pokusew/node-pcsclite](https://github.com/pokusew/node-pcsclite) under the hood) uses Node Native Modules (C++ Addons),
+    which are automatically built (using [node-gyp](https://github.com/nodejs/node-gyp))
+    when installing via npm or yarn, you need to have installed **C/C++ compiler
+    toolchain and some other tools** depending on your OS.
+    
+    **Please refer to the [node-gyp > Installation](https://github.com/nodejs/node-gyp#installation)**
+    for the list of required tools depending on your OS and steps how to install them.
 
-or with yarn:
+2. **PC/SC API in your OS**
 
-```bash
-yarn add nfc-pcsc
-```
+    On **macOS** and **Windows** you **don't have to install** anything,
+    **pcsclite API** is provided by the OS.
+    
+    On Linux/UNIX you'd probably need to install pcsclite library and daemon**.
+
+    > For example, in Debian/Ubuntu:
+    > ```bash
+    > apt-get install libpcsclite1 libpcsclite-dev
+    > ```
+    > To run any code you will also need to have installed the pcsc daemon:
+    > ```bash
+    > apt-get install pcscd
+    > ```
+
+3. **Once you have all needed libraries, you can install nfc-pcsc using npm:**
+
+    ```bash
+    npm install nfc-pcsc --save
+    ```
+    
+    or using Yarn:
+    
+    ```bash
+    yarn add nfc-pcsc
+    ```
 
 
 ## Flow of handling tags
@@ -82,7 +110,7 @@ When a NFC tag (card) is attached to the reader, the following is done:
 	- when `autoProcessing` is true (default value) it will handle card by the standard:  
 		
 		`TAG_ISO_14443_3` *(MIFARE Ultralight, 1K ...)*: sends GET_DATA command to retrieve **card UID**  
-		`TAG_ISO_14443_4` *(e.g.: Andorid HCE)*: sends SELECT_APDU command to retrive data by file
+		`TAG_ISO_14443_4` *(e.g.: Android HCE)*: sends SELECT_APDU command to retrieve data by file
 		
 		**then `card` event is fired, for which you can listen and then you can read or write data on the card**  
 		see [Basic usage](#basic-usage) how to do it
@@ -275,6 +303,7 @@ reader.on('card', async card => {
 
 Feel free to open pull request, if you have any useful example, that you'd like to add. 
 
+
 ## FAQ
 
 ### Migration from older versions to 0.6.0
@@ -323,9 +352,7 @@ Babel is used under the hood to transpile features, that are not supported in **
 
 ### Which Node.js versions are supported?
 
-nfc-pcsc officially supports **Node.js versions greater than or equal to 8** (i.e. Node.js **8.x, 9.x, 10.x, 11.x**).
-
-_Note: If you need to use nfc-pcsc in **Node.js 7.x**, it is also possible, but you'll have to transpile async/await using Babel (e.g. using [@babel/plugin-transform-async-to-generator](https://babeljs.io/docs/en/babel-plugin-transform-async-to-generator))._
+nfc-pcsc officially supports the following Node.js versions: **8.x, 9.x, 10.x, 11.x, 12.x, 13.x**.
 
 ### How do I require/import this library?
 
@@ -348,6 +375,17 @@ import { NFC } from 'nfc-pcsc/src';
 **Yes, you can!** You can read raw byte card data with `reader.read` method, and then you can parse it with any NDEF parser, e.g. [TapTrack/NdefJS](https://github.com/TapTrack/NdefJS).
 
 **Psst!** There is also an example ([ndef.js](/examples/ndef.js)), but it is not finished yet. Feel free to contribute.
+
+### Can I use this library in my React Native app?
+
+Short answer: **NO**
+
+Explanation: **Mobile support is virtually impossible** because nfc-pcsc uses **Node Native Modules**
+to access system **PC/SC API** _(actually under the hood, the pcsclite native binding
+is implemented in [@pokusew/pcsclite](https://github.com/pokusew/node-pcsclite))_.
+So the **Node.js runtime and PC/SC API** are required for nfc-pcsc to run.
+That makes it possible to use it on the most of OS (Windows, macOS, Linux)
+**directly in Node.js** or in **Electron.js and NW.js** desktop apps.
 
 
 ## Frequent errors
@@ -385,6 +423,7 @@ If you experience the same problems, you can try setting the fourth argument (re
 [`reader.read(blockNumber, length, blockSize, packetSize, readClass)`](https://github.com/pokusew/nfc-pcsc/blob/master/src/Reader.js#L493) method to value `0x00`.
 
 Relevant conversation: https://github.com/pokusew/nfc-pcsc/pull/55#issuecomment-450120232
+
 
 ## License
 
