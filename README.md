@@ -56,7 +56,7 @@ This library uses pcsclite native bindings [pokusew/node-pcsclite](https://githu
 
 **Requirements:** **at least Node.js 8 or newer** (see [this FAQ](#which-nodejs-versions-are-supported) for more info)
 
-**Note:** This library can be used only in **Node.js** environments on Linux/UNIX, macOS and Windows. Read why [here]((#can-i-use-this-library-in-my-react-native-app)).
+**Note:** This library can be used only in **Node.js** environments on Linux/UNIX, macOS and Windows. Read why [here](#can-i-use-this-library-in-my-react-native-app).
 
 1. **Node Native Modules build tools**
 
