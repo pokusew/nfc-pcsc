@@ -21,8 +21,8 @@ nfc.on('reader', async reader => {
   // reset reader.aid
   delete reader.aid; 
   
-  // disable auto processing
-  reader.autoProcessing = true;
+  // disable auto processing (not needed)
+  //reader.autoProcessing = true;
 
   //this is a fixed value in react-native-hce (at least for now)
   //it won't work with another aid
