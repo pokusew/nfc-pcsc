@@ -39,7 +39,8 @@ class NFC extends EventEmitter {
 			this.logger.debug('new reader detected', reader.name);
 
 			// create special object for ARC122U reader with commands specific to this reader
-			if (reader.name.toLowerCase().indexOf('acr122') !== -1) {
+			if (reader.name.toLowerCase().indexOf('acr122') !== -1 ||
+				reader.name.toLowerCase().indexOf('acr125') !== -1) {
 
 				const device = new ACR122Reader(reader, this.logger);
 
