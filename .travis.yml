@@ -5,6 +5,7 @@ dist: xenial
 
 language: node_js
 
+# TODO: remove unsupported Node.js versions
 node_js:
   - "13.*"
   - "12.*"
@@ -18,10 +19,10 @@ cache:
 
 before_install:
   - sudo apt-get install -y libpcsclite1 libpcsclite-dev pcscd
-  - yarn global add node-gyp
+  - yarn global add node-gyp --ignore-engines # node-gyp is not officially supported on older Node.js versions
 
 install:
-  - yarn --ignore-engines # AVA is not officially supported on Node.js 9.x
+  - yarn --ignore-engines # some libs may not be officially supported on older Node.js versions
 
 before_script:
   - yarn build
