@@ -39,8 +39,18 @@ class NFC extends EventEmitter {
 			this.logger.debug('new reader detected', reader.name);
 
 			// create special object for ARC122U reader with commands specific to this reader
-			if (reader.name.toLowerCase().indexOf('acr122') !== -1 ||
-				reader.name.toLowerCase().indexOf('acr125') !== -1) {
+			if (
+
+				// 'acr122' matches ARC122U
+				reader.name.toLowerCase().indexOf('acr122') !== -1
+
+				// 'acr125' matches ACR1252U reader because ACR1252U has some common commands with ARC122U
+				//   ACR1252U product page: https://www.acs.com.hk/en/products/342/acr1252u-usb-nfc-reader-iii-nfc-forum-certified-reader/
+				//   TODO: in the future, this should be refactored:
+				//         see discussion in PR#111 https://github.com/pokusew/nfc-pcsc/pull/111
+				|| reader.name.toLowerCase().indexOf('acr125') !== -1
+
+			) {
 
 				const device = new ACR122Reader(reader, this.logger);
 
