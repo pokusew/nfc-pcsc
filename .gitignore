@@ -17,9 +17,13 @@ nbproject/private/
 
 # JetBrains IDEs
 # see https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+**/.idea/usage.statistics.xml
+**/.idea/shelf/
+**/.idea/httpRequests/
+**/.idea/dataSources/
+**/.idea/dataSources.local.xml
 captures
 
 # common files
