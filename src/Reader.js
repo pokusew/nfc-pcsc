@@ -39,13 +39,6 @@ class Reader extends EventEmitter {
 	autoProcessing = true;
 	_aid = null;
 
-	keyStorage = {
-		'0': null,
-		'1': null,
-	};
-
-	pendingLoadAuthenticationKey = {};
-
 	/**
 	 * Reverses a copy of a given buffer
 	 * Does NOT mutate the given buffer, returns a reversed COPY
@@ -339,18 +332,28 @@ class Reader extends EventEmitter {
 
 	}
 
-	async loadAuthenticationKey(keyNumber, key) {
-
-		if (!(keyNumber === 0 || keyNumber === 1)) {
-			throw new LoadAuthenticationKeyError('invalid_key_number');
-		}
+	/**
+	 * Sends "Load Authentication Keys" command
+	 * Implemented according to
+	 *   - OMNIKEY 5422 AND 5122 Software Developer Guide Rev A.3
+	 *   - ACR122U Application Programming Interface V2.04
+	 * @param keyStructure integer, 1 byte
+	 *   bit 07 - 0 = card key / 1 = reader key
+	 *   bit 06 - fixed to 0 = plain transmission
+	 *   bit 05 - memory storage type: 0 = volatile, 1 = non-volatile
+	 *   bit 04 - RFU (use 0)
+	 *   bit 03-00 - fixed to 0b0000
+	 * @param keyNumber integer, 1 byte, identifies reader key slot
+	 * @param key an instance of Buffer or an array of bytes or a HEX string
+	 */
+	async loadAuthenticationKey(keyStructure, keyNumber, key) {
 
 		if (!Buffer.isBuffer(key) && !Array.isArray(key)) {
 
 			if (typeof key !== 'string') {
 				throw new LoadAuthenticationKeyError(
 					'invalid_key',
-					'Key must an instance of Buffer or an array of bytes or a string.',
+					'Key must an instance of Buffer or an array of bytes or a HEX string.',
 				);
 			}
 
@@ -358,18 +361,19 @@ class Reader extends EventEmitter {
 
 		}
 
-		if (key.length !== 6) {
-			throw new LoadAuthenticationKeyError('invalid_key', 'Key length must be 6 bytes.');
-		}
+		// TODO: key may have an arbitrary length, depending on the formats supported by reader
+		// if (key.length !== 6) {
+		// 	throw new LoadAuthenticationKeyError('invalid_key', 'Key length must be 6 bytes.');
+		// }
 
 		// CMD: Load Authentication Keys
 		const packet = Buffer.from([
 			0xff, // Class
-			0x82, // INS
-			0x00, // P1: Key Structure (0x00 = Key is loaded into the reader volatile memory.)
-			keyNumber, // P2: Key Number (00h ~ 01h = Key Location. The keys will disappear once the reader is disconnected from the PC)
-			key.length, // Lc: Length of the key (6)
-			...key, // Data In: Key (6 bytes)
+			0x82, // INS - Load Authentication Keys
+			keyStructure, // P1: Key Structure (0x00 = Key is loaded into the reader volatile memory.)
+			keyNumber,    // P2: Key Number
+			key.length,   // Lc: Length of the key
+			...key,       // Data In: Key (key.length bytes)
 		]);
 
 		let response = null;
@@ -377,7 +381,6 @@ class Reader extends EventEmitter {
 		try {
 
 			response = await this.transmit(packet, 2);
-
 
 		} catch (err) {
 
@@ -388,81 +391,56 @@ class Reader extends EventEmitter {
 		const statusCode = response.readUInt16BE(0);
 
 		if (statusCode !== 0x9000) {
-			throw new LoadAuthenticationKeyError(OPERATION_FAILED, `Load authentication key operation failed: Status code: ${statusCode}`);
+			this.logger.error(`[load authentication key operation failed] 0x${statusCode.toString(16)}`);
+			throw new LoadAuthenticationKeyError(OPERATION_FAILED, `Load authentication key operation failed: Status code: 0x${statusCode.toString(16)}`);
 		}
 
-		this.keyStorage[keyNumber] = key;
-
-		return keyNumber;
+		return true;
 
 	}
 
-	// for PC/SC V2.01 use obsolete = true
-	// for PC/SC V2.07 use obsolete = false [default]
-	async authenticate(blockNumber, keyType, key, obsolete = false) {
-
-		let keyNumber = Object.keys(this.keyStorage).find(n => this.keyStorage[n] === key);
-
-		// key is not in the storage
-		if (!keyNumber) {
-
-			// If there isn't already an authentication process happening for this key, start it
-			if (!this.pendingLoadAuthenticationKey[key]) {
-
-				// set key number to first
-				keyNumber = Object.keys(this.keyStorage)[0];
-
-				// if this number is not free
-				if (this.keyStorage[keyNumber] !== null) {
-					// try to find any free number
-					const freeNumber = Object.keys(this.keyStorage).find(n => this.keyStorage[n] === null);
-					// if we find, we use it, otherwise the first will be used and rewritten
-					if (freeNumber) {
-						keyNumber = freeNumber;
-					}
-				}
-
-				// Store the authentication promise in case other blocks are in process of authentication
-				this.pendingLoadAuthenticationKey[key] = this.loadAuthenticationKey(parseInt(keyNumber), key);
-
-			}
-
-			try {
-				keyNumber = await this.pendingLoadAuthenticationKey[key];
-			} catch (err) {
-				throw new AuthenticationError('unable_to_load_key', 'Could not load authentication key into reader.', err);
-			} finally {
-				// remove the loadAuthenticationKey Promise from pendingLoadAuthenticationKey
-				// as it is already resolved or rejected at this point
-				delete this.pendingLoadAuthenticationKey[key];
-			}
-
-		}
+	/**
+	 * Sends "General Authenticate" command
+	 * Implemented according to
+	 *   - OMNIKEY 5422 AND 5122 Software Developer Guide Rev A.3
+	 *   - ACR122U Application Programming Interface V2.04
+	 * Note: when obsolete=true, a1 must be set to 0
+	 * @param addressMSB Address MSB
+	 * @param addressLSB Address LSB
+	 * @param keyType Key Type
+	 * @param keyNumber Key Number (see loadAuthenticationKey)
+	 * @param obsolete uses an obsolete version of "Authenticate" command
+	 *   see section 5.2 in ACR122U API Application Programming Interface V2.04
+	 *   for PC/SC V2.07 use obsolete = false [default]
+	 *   for PC/SC V2.01 use obsolete = true
+	 */
+	async authenticate(addressMSB, addressLSB, keyType, keyNumber, obsolete = false) {
 
 		const packet = !obsolete ? (
 			// CMD: Authentication
 			Buffer.from([
 				0xff, // Class
-				0x86, // INS
+				0x86, // INS - General Authenticate
 				0x00, // P1
 				0x00, // P2
 				0x05, // Lc
 				// Data In: Authenticate Data Bytes (5 bytes)
-				0x01, // Byte 1: Version
-				0x00, // Byte 2
-				blockNumber, // Byte 3: Block Number
-				keyType, // Byte 4: Key Type
-				keyNumber, // Byte 5: Key Number
+				0x01,       // Byte 1: Version
+				addressMSB, // Byte 2: Address MSB
+				addressLSB, // Byte 3: Address LSB
+				keyType,    // Byte 4: Key Type
+				keyNumber,  // Byte 5: Key Number
 			])
 		) : (
 			// CMD: Authentication (obsolete)
+			//   see section 5.2 in ACR122U API Application Programming Interface V2.04
 			Buffer.from([
 				0xff, // Class
 				0x88, // INS
 				0x00, // P1
-				blockNumber, // P2: Block Number
-				keyType, // P3: Key Type
-				keyNumber, // Data In: Key Number
+				addressLSB, // P2: Block Number
+				keyType,    // P3: Key Type
+				keyNumber,  // Data In: Key Number
 			])
 		);
 

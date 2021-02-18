@@ -70,6 +70,8 @@ nfc.on('reader', async reader => {
 		// Reading and writing data from/to MIFARE Classic cards (e.g. MIFARE 1K) ALWAYS requires authentication!
 
 		// How does the MIFARE Classic authentication work?
+		// 0. Load key into an arbitrarily reader key slot.
+		//    May be skipped, if the key was already loaded once into non-volatile memory and its key number is known.
 		// 1. You authenticate to a specific sector using a specific key (key + keyType).
 		// 2. After the successful authentication, you are granted permissions according to the access conditions
 		//    for the given key (access conditions are specified in the trailer section of each sector).
@@ -80,15 +82,34 @@ nfc.on('reader', async reader => {
 		//          Consequently, if multiple reader.authenticate(...) commands are used,
 		//          only the last one has an effect on all subsequent read/write operations.
 
-		// reader.authenticate(blockNumber, keyType, key, obsolete = false)
-		// - blockNumber - the number of any block withing the sector we want to authenticate
-		// - keyType - type of key - either KEY_TYPE_A or KEY_TYPE_B
-		// - key - 6 bytes - a Buffer instance, an array of bytes, or 12-chars HEX string
-		// - obsolete - (default - false for PC/SC V2.07) use true for PC/SC V2.01
-
 		// Don't forget to fill YOUR keys and types! (default ones are stated below)
 		const key = 'FFFFFFFFFFFF'; // key must be a 12-chars HEX string, an instance of Buffer, or array of bytes
 		const keyType = KEY_TYPE_A;
+
+		// keyNumber and keyStructure is dependent on your reader
+		// uncomment/comment/change the following definitions
+
+		// for ACR122U:
+		// const keyNumber = 0; // or 1 (ACR122U has only two volatile (non-persistent) slots)
+		// const keyStructure = 0; // ACR122U supports only volatile card key, plain transmission
+
+		// for OMNIKEY 5422:
+		const keyNumber = 0; // an integer in range [0, 31] (total 32 MIFARE Classic key slots)
+		const keyStructure = 0b00100000; // bit 5 set to 1 to indicate non-volatile memory storage
+		// all OMNIKEY 5422 MIFARE Classic key slots are non-volatile
+		// that means that the key might be loaded only once
+		// and the reader will remember it in the future (even after power off, reconnection)
+
+		try {
+
+			await reader.loadAuthenticationKey(keyStructure, keyNumber, key);
+
+			pretty.info(`key ${key} successfully loaded into the slot `, reader);
+
+		} catch (err) {
+			pretty.error(`error when loading key`, reader, err);
+			return;
+		}
 
 		try {
 
@@ -96,7 +117,7 @@ nfc.on('reader', async reader => {
 			// authenticating one block within the sector will authenticate all blocks within that sector
 			// so in our case, we choose block 4 that is within the sector 1, all blocks (4, 5, 6, 7)
 			// will be authenticated with the given key
-			await reader.authenticate(4, keyType, key);
+			await reader.authenticate(0, 4, keyType, keyNumber);
 
 			// Note: writing might require to authenticate with a different key (based on the sector access conditions)
 
