@@ -154,13 +154,23 @@ nfc.on('reader', async reader => {
 
 			// 3: [0xBD] ReadData(FileNo,Offset,Length) [8bytes] - Reads data from Standard Data Files or Backup Data Files
 			const res = await send(wrap(0xbd, [desfire.read.fileId, ...desfire.read.offset, ...desfire.read.length]), 'step 3 - read', 255);
+            
+			var message = res.slice(0, res.length-2);
+            var status = res.slice(-1)[0];
+
+			// we have additional frames
+            while (status == 0xAF) {
+                const cont = await send([0x90, 0xaf, 0x00, 0x00, 0x00], 'step 3 - read', 255)
+                status = cont.slice(-1)[0];
+                message += cont.slice(0, cont.length-2);
+            }
 
 			// something went wrong
-			if (res.slice(-1)[0] !== 0x00) {
-				throw new Error('error in step 3 - read');
+			if (status !== 0x00) {
+                throw new Error('error in step 3 - read');
 			}
 
-			console.log('data', res);
+			console.log('data', message);
 
 		};
 
