@@ -40,7 +40,7 @@ class ACR122Reader extends Reader {
 			...payload,
 		]);
 
-		console.log(packet);
+		// console.log(packet);
 
 		let response = null;
 
@@ -55,7 +55,7 @@ class ACR122Reader extends Reader {
 			// Red OFF Green ON   0x02
 			// Red ON  Green ON   0x03
 
-			console.log(response.slice(1));
+			// console.log(response.slice(1));
 
 
 		} catch (err) {
@@ -122,7 +122,7 @@ class ACR122Reader extends Reader {
 			...blinking, // Data In: Blinking Duration Control (4 bytes)
 		]);
 
-		console.log(packet);
+		//console.log(packet);
 
 		let response = null;
 
@@ -137,7 +137,7 @@ class ACR122Reader extends Reader {
 			// Red OFF Green ON   0x02
 			// Red ON  Green ON   0x03
 
-			console.log(response.slice(1));
+			//console.log(response.slice(1));
 
 
 		} catch (err) {
@@ -166,7 +166,7 @@ class ACR122Reader extends Reader {
 			0x00, // Le
 		]);
 
-		console.log(packet);
+		//console.log(packet);
 
 		let response = null;
 
@@ -205,7 +205,7 @@ class ACR122Reader extends Reader {
 			0x00, // Le
 		]);
 
-		console.log(packet);
+		//console.log(packet);
 
 		let response = null;
 
