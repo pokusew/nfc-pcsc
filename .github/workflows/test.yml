@@ -1,10 +1,10 @@
-name: Release
+name: Test
 
 on:
   [push]
 
 jobs:
-  pre-publish:
+ test:
     name: Deploy
     runs-on: ubuntu-latest
     permissions:
