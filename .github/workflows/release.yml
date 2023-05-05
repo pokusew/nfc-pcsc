@@ -6,7 +6,6 @@ on:
 
 jobs:
   pre-publish:
-    name: Deploy
     runs-on: ubuntu-latest
     permissions:
       contents: write
