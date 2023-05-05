@@ -36,6 +36,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "babel src --out-dir dist",
+    "build:types": "tsc -d src/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
     "example": "node -r @babel/register examples/read-write.js",
     "example-basic": "node -r @babel/register examples/basic.js",
     "example-from-readme-3": "node -r @babel/register examples/from-readme-3.js",
@@ -60,11 +61,14 @@
     "@babel/plugin-syntax-object-rest-spread": "^7.8.3",
     "@babel/plugin-transform-modules-commonjs": "^7.12.13",
     "@babel/register": "^7.12.13",
+    "@types/node": "^18.16.3",
     "ava": "^3.15.0",
     "chalk": "^4.1.0",
     "cross-env": "^7.0.3",
     "mock-require": "^3.0.3",
     "triple-beam": "^1.3.0",
+    "tsc": "^2.0.4",
+    "typescript": "^5.0.4",
     "winston": "^3.3.3"
   },
   "ava": {
