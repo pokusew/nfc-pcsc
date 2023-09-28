@@ -1,0 +1,72 @@
+#
+# GitHub Actions Workflow
+#   reference: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+#
+#   useful example: https://github.com/mikeal/bundle-size-action/blob/master/.github/workflows/mikeals-workflow.yml
+#
+
+name: CI
+
+on: [ push, pull_request ]
+
+jobs:
+
+  build:
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macOS-latest ]
+        node-version: [ 8.x, 10.x, 12.x, 13.x, 14.x, 16.x, 18.x, 20.x ]
+        exclude:
+          # exclude Node.js 8.x on ubuntu-latest
+          # node-gyp fails during in gyp's Python code:
+          #   AttributeError: module 'collections' has no attribute 'MutableSet'
+          # TODO: try to fix
+          - os: ubuntu-latest
+            node-version: 8.x
+          # temporarily exclude Node.js 8.x-14.x on windows-latest
+          # node-gyp cannot find compatible Microsoft Visual Studio
+          # TODO: try to fix (install manually an older MVS)
+          - os: windows-latest
+            node-version: 8.x
+          - os: windows-latest
+            node-version: 10.x
+          - os: windows-latest
+            node-version: 12.x
+          - os: windows-latest
+            node-version: 13.x
+          - os: windows-latest
+            node-version: 14.x
+
+    steps:
+
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        # https://github.com/actions/setup-node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install pcsclite
+        run: sudo apt-get install -y libpcsclite1 libpcsclite-dev pcscd
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Install dependencies
+        run: npm install --verbose
+
+      - name: Build dist
+        run: npm run build
+
+      - name: Run basic test
+        run: node test/_node-version-test.js
+
+      - name: Run tests
+        run: npm test
+        # TODO: enable once tests do not get stuck on Windows
+        # Mocha and Sinon.JS support only Node.js >=14.x
+        if: matrix.os != 'windows-latest' && contains(fromJSON('["14.x", "16.x", "18.x", "20.x"]'), matrix.node-version)
