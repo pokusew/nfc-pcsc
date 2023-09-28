@@ -1,4 +1,5 @@
-# editorconfig.org
+# EditorConfig
+# https://www.editorconfig.org/
 root = true
 
 [*]
@@ -15,3 +16,12 @@ indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = false
+
+# JetBrains IDEs do NOT use empty final newline
+# for their metadata files (e.g., .xml/.iml files in .idea dir and .iml everywhere).
+# Also, using `**/.idea/**/*` stopped working in recent versions,
+# so now `.idea/**/*` is used instead.
+[{.idea/**/*,*.iml}]
+indent_style = space
+indent_size = 2
+insert_final_newline = false
