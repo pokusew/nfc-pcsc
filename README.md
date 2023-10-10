@@ -352,7 +352,7 @@ Babel is used under the hood to transpile features, that are not supported in **
 
 ### Which Node.js versions are supported?
 
-nfc-pcsc officially supports the following Node.js versions: **8.x, 9.x, 10.x, 11.x, 12.x, 13.x**.
+nfc-pcsc officially supports the following Node.js versions: **8.x, 9.x, 10.x, 11.x, 12.x, 13.x, 14.x, 16.x, 18.x, 20.x**.
 
 ### How do I require/import this library?
 
