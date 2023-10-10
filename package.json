@@ -64,6 +64,6 @@
     "cross-env": "^7.0.3",
     "mock-require": "^3.0.3",
     "triple-beam": "^1.4.1",
-    "winston": "^3.10.0"
+    "winston": "^3.11.0"
   }
 }
