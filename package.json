@@ -60,7 +60,7 @@
     "@babel/plugin-transform-modules-commonjs": "^7.23.0",
     "@babel/register": "^7.22.15",
     "ava": "^5.3.1",
-    "chalk": "^5.3.0",
+    "chalk": "^4.0.0",
     "cross-env": "^7.0.3",
     "mock-require": "^3.0.3",
     "triple-beam": "^1.4.1",
