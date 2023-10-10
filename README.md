@@ -103,7 +103,7 @@ When a NFC tag (card) is attached to the reader, the following is done:
 
 1. it tries to find out the standard of card (`TAG_ISO_14443_3` or `TAG_ISO_14443_4`)
 
-2. it will connect to the card, so any other card specific commands could be send
+2. it will connect to the card, so any other card specific commands could be sent
 
 3. handling of card
 	
@@ -401,7 +401,7 @@ import { NFC } from 'nfc-pcsc';
 const { NFC } = require('nfc-pcsc');
 ```
 
-Take a a look at [How do I require/import this library?](#how-do-i-requireimport-this-library) section for more info.
+Take a look at [How do I require/import this library?](#how-do-i-requireimport-this-library) section for more info.
 
 > **Note**, that `const NFC = require('nfc-pcsc');` or `import NFC from 'nfc-pcsc'` (NFC without brackets) won't work, because there is no default export.  
 It was removed for non-standard behaviour of ES6 modules in ES5 env (see [#12](https://github.com/pokusew/nfc-pcsc/issues/12) and [v0.6.0 release changelog](https://github.com/pokusew/nfc-pcsc/releases/tag/v0.6.0))
