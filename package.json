@@ -36,6 +36,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "babel src --out-dir dist",
+    "build:index": "rm -rf ./index.js ./index.d.ts && babel src --out-dir dist",
+    "prepublish": "npm run build:index",
     "example": "node -r @babel/register examples/read-write.js",
     "example-basic": "node -r @babel/register examples/basic.js",
     "example-from-readme-3": "node -r @babel/register examples/from-readme-3.js",
