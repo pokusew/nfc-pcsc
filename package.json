@@ -54,17 +54,17 @@
     "@pokusew/pcsclite": "^0.6.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.23.0",
-    "@babel/core": "^7.23.0",
+    "@babel/cli": "^7.26.4",
+    "@babel/core": "^7.26.0",
     "@babel/plugin-syntax-object-rest-spread": "^7.8.3",
-    "@babel/plugin-transform-class-properties": "^7.22.5",
-    "@babel/plugin-transform-modules-commonjs": "^7.23.0",
-    "@babel/register": "^7.22.15",
-    "ava": "^5.3.1",
+    "@babel/plugin-transform-class-properties": "^7.25.9",
+    "@babel/plugin-transform-modules-commonjs": "^7.26.3",
+    "@babel/register": "^7.25.9",
+    "ava": "^6.2.0",
     "chalk": "^4.0.0",
     "cross-env": "^7.0.3",
     "mock-require": "^3.0.3",
     "triple-beam": "^1.4.1",
-    "winston": "^3.11.0"
+    "winston": "^3.17.0"
   }
 }
