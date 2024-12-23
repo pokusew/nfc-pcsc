@@ -541,7 +541,7 @@ class MifareUltralightC {
 	async read(page) {
 
 		const cmdRead = ACR122U_DirectTransmit(
-			PN533_InDataExchange(1, [
+			PN533_InCommunicateThru([
 				// READ command
 				// see MIFARE Ultralight C docs, Section 9.2 READ, Table 17
 				0x30, // Cmd: read four pages
@@ -556,8 +556,8 @@ class MifareUltralightC {
 			// expected response max length:
 			// READ response should look like the following (21 bytes)
 			// D5 41 00 [d0] ... [d15] 90 00
-			// bytes 0-1: D5 41 InDataExchange output prefix (see NXP PN533 docs, Section 8.4.8 InDataExchange)
-			// byte 2: InDataExchange status, 0x00 is success (see NXP PN533 docs, Table 15. Error code list)
+			// bytes 0-1: D5 43 InCommunicateThru output prefix (see NXP PN533 docs, Section 8.4.9 InCommunicateThru)
+			// byte 2: InCommunicateThru status, 0x00 is success (see NXP PN533 docs, Table 15. Error code list)
 			// bytes 3-18 (16 bytes): the read data
 			// bytes 19-20 (last 2 bytes): ACR122U success code 0x90 0x00
 			21,
@@ -573,7 +573,7 @@ class MifareUltralightC {
 
 		if (
 			resRead[0] !== 0xD5 ||
-			resRead[1] !== 0x41 ||
+			resRead[1] !== 0x43 ||
 			resRead[2] !== 0x00 ||
 			resRead[19] !== 0x90 ||
 			resRead[20] !== 0x00
