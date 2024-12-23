@@ -26,6 +26,7 @@ export const KEY_TYPE_B = 0x61;
 
 export const CONNECT_MODE_DIRECT = 'CONNECT_MODE_DIRECT';
 export const CONNECT_MODE_CARD = 'CONNECT_MODE_CARD';
+export const CONNECT_MODE_CARD_EXCLUSIVE = 'CONNECT_MODE_CARD_EXCLUSIVE';
 
 
 class Reader extends EventEmitter {
@@ -212,11 +213,12 @@ class Reader extends EventEmitter {
 
 	}
 
-	connect(mode = CONNECT_MODE_CARD) {
+	connect(mode = CONNECT_MODE_CARD_EXCLUSIVE) {
 
 		const modes = {
 			[CONNECT_MODE_DIRECT]: this.reader.SCARD_SHARE_DIRECT,
 			[CONNECT_MODE_CARD]: this.reader.SCARD_SHARE_SHARED,
+			[CONNECT_MODE_CARD_EXCLUSIVE]: this.reader.SCARD_SHARE_EXCLUSIVE,
 		};
 
 		if (!modes[mode]) {
