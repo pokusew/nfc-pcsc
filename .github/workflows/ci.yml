@@ -18,7 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest, macOS-latest ]
+        # https://github.com/actions/runner-images#available-images
+        # macos-latest-large is x64
+        # macos-latest is arm64
+        os: [ ubuntu-latest, windows-latest ]
         node-version: [ 8.x, 10.x, 12.x, 13.x, 14.x, 16.x, 18.x, 20.x ]
         exclude:
           # exclude Node.js 8.x on ubuntu-latest
@@ -40,6 +43,12 @@ jobs:
             node-version: 13.x
           - os: windows-latest
             node-version: 14.x
+        include:
+          # macos-latest is arm64 which supports only the latest Node.js versions
+          - os: macos-latest
+            node-version: 18.x
+          - os: macos-latest
+            node-version: 20.x
 
     steps:
 
@@ -68,5 +77,5 @@ jobs:
       - name: Run tests
         run: npm test
         # TODO: enable once tests do not get stuck on Windows
-        # Mocha and Sinon.JS support only Node.js >=14.x
-        if: matrix.os != 'windows-latest' && contains(fromJSON('["14.x", "16.x", "18.x", "20.x"]'), matrix.node-version)
+        # AVA supports only officially supported Node.js versions
+        if: matrix.os != 'windows-latest' && contains(fromJSON('["18.x", "20.x"]'), matrix.node-version)
