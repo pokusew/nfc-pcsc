@@ -196,6 +196,25 @@ const PN533_InCommunicateThru = (dataOut) => {
 
 class MifareUltralightC {
 
+	// See Section 7.5 Memory organization
+	static NUM_PAGES = 48; // first 0x00, last 0x2F
+	static PAGE_SIZE = 4; // 4 bytes (48 * 4 = 192 bytes EEPROM)
+	// The first 4 memory pages (0x00 - 0x03) contain the 7-byte UID and its 2 Block Check Character Bytes (BCC),
+	// 1 byte internal data (INT), 2 LOCK bytes, and 4 OTP bytes (7 + 2 + 1 + 2 + 4 = 16 bytes)
+	// 36 user memory pages (app data, freeform), 36 * 4 = 144 bytes
+	static USER_PAGE_FIRST = 0x04;
+	static USER_PAGE_LAST = 0x27;
+	// page 0x28 contain 2 LOCK bytes (LOCK2, LOCK3), the other 2 bytes of the page are not usable
+	// page 0x29 contain one 16-bit counter, the other 2 bytes of the page are not usable
+	static AUTH0_PAGE = 0x2A;
+	static AUTH1_PAGE = 0x2B;
+	static AUTH_KEY_PAGE_1 = 0x2C;
+	static AUTH_KEY_PAGE_2 = 0x2D;
+	static AUTH_KEY_PAGE_3 = 0x2E;
+	static AUTH_KEY_PAGE_4 = 0x2F;
+	static MEMORY_ACCESS_ONLY_WRITE_RESTRICTED = 0x01;
+	static MEMORY_ACCESS_READ_WRITE_RESTRICTED = 0x00;
+
 	constructor(reader) {
 		this.reader = reader;
 	}
@@ -661,13 +680,66 @@ class MifareUltralightC {
 
 	}
 
+	/**
+	 * Writes the given AUTH0 byte value
+	 *
+	 * Docs:
+	 * - MIFARE Ultralight C - see https://www.nxp.com/docs/en/data-sheet/MF0ICU2.pdf
+	 *   - Section 7.5.8 Configuration for memory access via 3DES Authentication
+	 *
+	 * @param value {number} The AUTH0 byte value defines the page address from which the authentication is required.
+	 *                       Valid address values are from `0x03` (all pages are protected)
+	 *                       to `0x30` (memory protection effectively disabled).
+	 * @see writeAuth1
+	 * @returns {Promise<void>}
+	 */
+	async writeAuth0(value) {
+		if (!Number.isInteger(value) || value < 0x03 || value > 0x30) {
+			throw new Error('Invalid AUTH0 value!');
+		}
+		await this.write(MifareUltralightC.AUTH0_PAGE, Buffer.from([
+			value,
+			0x00,
+			0x00,
+			0x00,
+		]));
+	}
+
+	/**
+	 * Writes the given AUTH1 byte value
+	 *
+	 * Docs:
+	 * - MIFARE Ultralight C - see https://www.nxp.com/docs/en/data-sheet/MF0ICU2.pdf
+	 *   - Section 7.5.8 Configuration for memory access via 3DES Authentication
+	 *
+	 * @param value {number} The AUTH1 byte value determines if only write access is restricted
+	 *                       (`AUTH1 = 0bxxxxxxx1`), or if both read and write access
+	 *                       are restricted (`AUTH1 = 0bxxxxxxx0`). The `x` symbol denotes ignored bits.
+	 *                       The ignored are persisted, so they can be used for storing additional app-specific data.
+	 * @see writeAuth0
+	 * @returns {Promise<void>}
+	 */
+	async writeAuth1(value) {
+		if (!Number.isInteger(value) || value < 0x00 || value > 0xFF) {
+			throw new Error('Invalid AUTH1 value!');
+		}
+		await this.write(MifareUltralightC.AUTH1_PAGE, Buffer.from([
+			value,
+			0x00,
+			0x00,
+			0x00,
+		]));
+	}
 
 }
 
 // This is the default factory key of MIFARE Ultralight C
+// See Section 7.5.10 Initial memory configuration, Table 13. Initial memory organization,
+// https://www.nxp.com/docs/en/data-sheet/MF0ICU2.pdf.
 const DEFAULT_KEY = Buffer.from('BREAKMEIFYOUCAN!', 'utf-8');
 
-// Note that some other implementations might require the authentication key with different byte order,
+// Note that some other implementations of the authenticate3DES
+// might require the authentication key with a different byte order,
 // see the MifareUltralightC.swapKeyEndianness() method above for more info.
 assert.deepEqual(MifareUltralightC.swapKeyEndianness(DEFAULT_KEY), Buffer.from('IEMKAERB!NACUOYF', 'utf-8'));
 
@@ -689,6 +761,10 @@ nfc.on('reader', async reader => {
 
 		try {
 
+			// Note:
+			//   Depending on your MIFARE Ultralight C configuration, authentication might not be required.
+			//   In the factory state, all read/write operations are allowed without authentication.
+			//   Nevertheless, we can always perform authentication.
 			await ultralightC.authenticate3DES(DEFAULT_KEY);
 			// await ultralightC.authenticate3DES(ZERO_KEY);
 			// await ultralightC.authenticate3DES(ONES_KEY);
@@ -711,6 +787,20 @@ nfc.on('reader', async reader => {
 			// // await ultralightC.write(0x2E, key.subarray(8, 12));
 			// // await ultralightC.write(0x2F, key.subarray(12, 16));
 			// // pretty.info('authentication key successfully written');
+
+			// # Protect memory from write and optionally read
+
+			// // See Section 7.5.8 Configuration for memory access via 3DES Authentication of MF0ICU2.pdf.
+			// const firstAuthProtectedPage = 0x28; // an example
+			// const disableProtection = 0x30; // factory default
+			// await ultralightC.writeAuth0(disableProtection);
+			// // read-write protection, factory default
+			// await ultralightC.writeAuth1(MifareUltralightC.MEMORY_ACCESS_READ_WRITE_RESTRICTED);
+			// // only write protection
+			// // await ultralightC.writeAuth1(MifareUltralightC.MEMORY_ACCESS_ONLY_WRITE_RESTRICTED);
+
+			// Note that you can also use LOCK bytes LOCK 0-4 to turn selected pages permanently into a read-only memory.
+			// See Section 7.5.2 and Section 7.5.3 of MF0ICU2.pdf.
 
 			// // # Write data
 			//
@@ -810,4 +900,3 @@ function numerical3DESExampleFromMF0ICU2() {
 }
 
 numerical3DESExampleFromMF0ICU2();
-
