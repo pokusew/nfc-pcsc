@@ -296,6 +296,7 @@ reader.on('card', async card => {
 * [read-write.js](/examples/read-write.js) – detecting, reading and writing cards standard ISO/IEC 14443-3 cards (NTAG, MIFARE Ultralight, ...)
 * [mifare-classic.js](/examples/mifare-classic.js) – authenticating, reading and writing MIFARE Classic cards
 * [mifare-desfire.js](/examples/mifare-desfire.js) – authenticating and accessing data on MIFARE DESFire cards
+* [mifare-ultralight-c.js](/examples/mifare-ultralight-ntag.js) – an example implementation of MIFARE Ultralight C (3DES authentication)
 * [mifare-ultralight-ntag.js](/examples/mifare-ultralight-ntag.js) – an example implementation of Mifare Ultralight EV1 and NTAG specific commands
 * [basic.js](/examples/basic.js) – reader events explanation
 * [led.js](/examples/led.js) – controlling LED and buzzer of ACR122U reader

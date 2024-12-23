@@ -42,6 +42,7 @@
     "example-led": "node -r @babel/register examples/led.js",
     "example-mifare-classic": "node -r @babel/register examples/mifare-classic.js",
     "example-mifare-desfire": "node -r @babel/register examples/mifare-desfire.js",
+    "example-mifare-ultralight-c": "node -r @babel/register examples/mifare-ultralight-c.js",
     "example-mifare-ultralight-ntag": "node -r @babel/register examples/mifare-ultralight-ntag.js",
     "example-ndef": "node -r @babel/register examples/ndef.js",
     "example-uid-logger": "node -r @babel/register examples/uid-logger.js",
